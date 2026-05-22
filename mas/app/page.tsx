@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import {
   Search,
   Home,
@@ -96,7 +96,7 @@ function IntentCard({
   return (
     <button
       onClick={onClick}
-      className={`w-full p-5 rounded-2xl text-left transition-all duration-200 active:scale-[0.98] ${isHighlighted
+      className={`w-full p-5 rounded-2xl text-left transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D71920] focus-visible:ring-offset-2 ${isHighlighted
           ? "bg-white border-2 border-[#D71920] shadow-lg shadow-[#D71920]/10"
           : "bg-white border border-[#E5E7EB] shadow-sm hover:shadow-md hover:border-[#D71920]/30"
         }`}
@@ -133,7 +133,7 @@ function Chip({
   return (
     <button
       onClick={onClick}
-      className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 active:scale-95 ${isSelected
+      className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D71920] focus-visible:ring-offset-2 ${isSelected
           ? variant === "yellow"
             ? "bg-[#FFD21F] text-[#1F2933] shadow-md"
             : "bg-[#D71920] text-white shadow-md"
@@ -160,7 +160,7 @@ function PrimaryButton({
   icon?: React.ElementType
 }) {
   const baseClasses =
-    "flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-semibold text-base transition-all duration-200 active:scale-[0.98]"
+    "flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-semibold text-base transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D71920] focus-visible:ring-offset-2"
   const variantClasses = {
     primary: "bg-[#D71920] text-white shadow-lg shadow-[#D71920]/20 hover:bg-[#D71920]/90",
     secondary: "bg-[#193B8C] text-white shadow-lg shadow-[#193B8C]/20 hover:bg-[#193B8C]/90",
@@ -298,6 +298,12 @@ export default function MASQHomemart() {
   const [showCopyFeedback, setShowCopyFeedback] = useState(false)
   const [userType, setUserType] = useState("Lansia")
   const [userPriority, setUserPriority] = useState("Hemat dulu")
+  const [toastMessage, setToastMessage] = useState("")
+
+  const showToast = (message: string) => {
+    setToastMessage(message)
+    setTimeout(() => setToastMessage(""), 4000)
+  }
 
   const navigate = useCallback((newScreen: Screen) => {
     setScreen(newScreen)
@@ -307,7 +313,23 @@ export default function MASQHomemart() {
     setSelectedProblems((prev) => (prev.includes(problem) ? prev.filter((p) => p !== problem) : [...prev, problem]))
   }
 
-  const handleCopySummary = () => {
+  const handleCopySummary = async () => {
+    const summaryText = "Pelanggan membutuhkan bantuan memilih solusi kamar mandi yang lebih aman untuk lansia. Masalah utama adalah lantai licin, kurang pegangan, dan cahaya kurang jelas. Prioritas awal adalah keset anti-slip, pegangan dinding, dan lampu kamar mandi yang lebih terang. Pelanggan memilih mulai dari opsi hemat, sehingga disarankan mulai dari barang yang paling penting terlebih dahulu. Jika diperlukan, staf dapat membantu mengecek opsi pemasangan atau renovasi ringan.";
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(summaryText);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = summaryText;
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+      }
+    } catch (err) {
+      console.error("Failed to copy summary", err);
+    }
     setShowCopyFeedback(true)
     setTimeout(() => setShowCopyFeedback(false), 2000)
   }
@@ -334,7 +356,7 @@ export default function MASQHomemart() {
             icon={Search}
             title="Beli barang tertentu"
             description="Saya sudah tahu yang ingin dicari."
-            onClick={() => { }}
+            onClick={() => showToast("Jalur cari barang disiapkan untuk pengembangan berikutnya. Demo saat ini berfokus pada menyelesaikan masalah rumah.")}
           />
           <IntentCard
             icon={Sparkles}
@@ -347,9 +369,16 @@ export default function MASQHomemart() {
             icon={Wrench}
             title="Minta bantuan jasa"
             description="Servis, pemasangan, desain, atau renovasi."
-            onClick={() => { }}
+            onClick={() => showToast("Jalur jasa disiapkan untuk pengembangan berikutnya. Demo saat ini berfokus pada masalah kamar mandi licin.")}
           />
         </div>
+
+        {toastMessage && (
+          <div className="mb-6 p-4 rounded-xl bg-[#FFF8EF] border border-[#D71920]/20 shadow-sm animate-fade-in flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-[#D71920] shrink-0" />
+            <p className="text-sm text-[#1F2933] leading-relaxed">{toastMessage}</p>
+          </div>
+        )}
 
         <div className="bg-white rounded-2xl p-4 border border-[#E5E7EB]">
           <p className="text-sm font-medium text-[#1F2933] mb-3">Mulai dari pilihan:</p>
@@ -463,7 +492,7 @@ export default function MASQHomemart() {
               <button
                 key={option}
                 onClick={() => setUserType(option)}
-                className={`w-full p-4 rounded-xl text-left transition-all ${userType === option
+                className={`w-full p-4 rounded-xl text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D71920] focus-visible:ring-offset-2 ${userType === option
                     ? "bg-[#D71920] text-white"
                     : "bg-[#F5F5F5] text-[#1F2933] hover:bg-[#E5E7EB]"
                   }`}
@@ -629,7 +658,7 @@ export default function MASQHomemart() {
   // Screen 6: Staff Summary Screen
   const Screen6 = () => (
     <div className="min-h-full flex flex-col animate-fade-in">
-      <ScreenHeader step={5} totalSteps={6} />
+      <ScreenHeader step={6} totalSteps={6} />
       <div className="flex-1 px-5 pb-8">
         <div className="mb-6 mt-4">
           <h1 className="text-2xl font-bold text-[#1F2933] mb-2 text-balance">Ringkasan untuk staf toko</h1>
@@ -761,6 +790,15 @@ export default function MASQHomemart() {
 
   // Screen 8: Multi-Agent Work Log Screen
   const Screen8 = () => {
+    const [activeAgentIndex, setActiveAgentIndex] = useState(0)
+
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setActiveAgentIndex((prev) => (prev < 7 ? prev + 1 : 0))
+      }, 1200)
+      return () => clearInterval(interval)
+    }, [])
+
     const agents = [
       {
         name: "Customer Triage Agent",
@@ -817,10 +855,11 @@ export default function MASQHomemart() {
               {flowSteps.map((step, index) => (
                 <div key={step} className="flex items-center">
                   <div
-                    className={`px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${index === 0
-                        ? "bg-[#D71920] text-white"
-                        : index === flowSteps.length - 1
-                          ? "bg-[#16A34A] text-white"
+                    className={`px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all duration-300 ${
+                        activeAgentIndex === index
+                          ? index === flowSteps.length - 1 
+                            ? "bg-[#16A34A] text-white shadow-md shadow-[#16A34A]/20"
+                            : "bg-[#D71920] text-white shadow-md shadow-[#D71920]/20"
                           : "bg-[#193B8C]/10 text-[#193B8C]"
                       }`}
                   >
@@ -840,7 +879,7 @@ export default function MASQHomemart() {
                 name={agent.name}
                 input={agent.input}
                 output={agent.output}
-                isActive={index === 0}
+                isActive={index === activeAgentIndex - 1}
                 index={index}
               />
             ))}
@@ -849,8 +888,7 @@ export default function MASQHomemart() {
           {/* Technical Note */}
           <div className="p-4 rounded-xl bg-[#F5F5F5] border border-[#E5E7EB] mb-6">
             <p className="text-xs text-[#667085] leading-relaxed">
-              <strong>Catatan teknis:</strong> Data demo menggunakan dummy data modular. Katalog produk, layanan, promo,
-              dan data stok dapat diganti dengan data QHomemart pada fase integrasi.
+              <strong>Catatan teknis:</strong> Data demo menggunakan dummy data modular. Katalog produk, layanan, promo, stok, dan kanal WhatsApp dapat diganti dengan data QHomemart pada fase integrasi. Prototype ini belum terhubung ke sistem produksi QHomemart.
             </p>
           </div>
 
