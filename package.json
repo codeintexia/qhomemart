@@ -1,0 +1,9 @@
+{
+    "name": "qhomemart-project",
+    "private": true,
+    "scripts": {
+        "dev": "npm --prefix mas run dev",
+        "build": "npm --prefix mas run build",
+        "start": "npm --prefix mas run start"
+    }
+}
