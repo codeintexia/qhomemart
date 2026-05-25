@@ -1,32 +1,14 @@
 import type { Metadata, Viewport } from 'next'
-import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
-// next/font/google is intentionally removed.
-// Fonts are resolved via system font stack defined in globals.css.
-// This ensures the build is fully reproducible without network access.
+// next/font/google and @vercel/analytics are intentionally excluded.
+// - Fonts: resolved via system font stack in globals.css (no network fetch).
+// - Analytics: removed to comply with the "no external API calls" prototype scope.
 
 export const metadata: Metadata = {
   title: 'MAS QHomemart - Multi-Agent System Prototype',
   description: 'Problem-to-Solution Bundle Multi-Agent System prototype for QHomemart AI Agent Competition 2026',
   generator: 'v0.app',
-  icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
-  },
 }
 
 export const viewport: Viewport = {
@@ -44,7 +26,6 @@ export default function RootLayout({
     <html lang="id" className="bg-[#F0EBE3]">
       <body className="font-sans antialiased min-h-screen">
         {children}
-        {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
   )
