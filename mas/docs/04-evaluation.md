@@ -10,6 +10,9 @@ for evidence in the codebase.
 > **Prototype scope:** All agent logic runs as deterministic local TypeScript functions
 > using dummy modular data. No real QHomemart production integration, no real inventory,
 > no real pricing, no real WhatsApp API, and no guaranteed service availability.
+> The current version demonstrates agent role separation, structured reasoning, and
+> reproducible orchestration through deterministic local functions. It is designed as
+> a prototype layer that can later be connected to LLM tools or real business systems.
 
 ---
 
@@ -58,7 +61,7 @@ CustomerInput
   → WorkflowRunResult
 ```
 
-- Each agent receives the typed output of the previous agent as its input — **no shared global state**.
+- Each agent receives structured typed outputs from previous workflow steps — **no shared mutable global state is used**.
 - The Bundle Strategy Agent **synthesises two upstream outputs** (ProductMatchOutput + ServiceMatchOutput) into one structured bundle.
 - The Staff & Insight Agent **consumes all upstream context** (triage, risks, products, services, bundle) to produce its summary.
 - An `InteractionLogStep` is captured after each agent call, producing a 6-entry interaction log.
@@ -79,7 +82,7 @@ social problem — not a toy scenario.
 
 | Dimension | Evidence |
 |-----------|----------|
-| **Social impact** | Addresses fall prevention for elderly occupants — a significant public health concern in Indonesia |
+| **Social impact** | Addresses fall prevention for elderly occupants — a high-impact household safety concern for older occupants |
 | **Commercial signal** | Demonstrates how structured bundling of products and optional service guidance can increase basket relevance — prototype only, no guaranteed revenue increase |
 | **Staff efficiency** | The staff summary gives associates a structured briefing so they can assist the customer faster without starting from scratch |
 | **Scalability** | The architecture supports multiple problem verticals; bathroom safety is the demo, but the same pipeline can run for lighting, staircase safety, ergonomics, and more |
@@ -136,7 +139,7 @@ npm run build              # TypeScript check + production build
 npm run dev                # start dev server at http://localhost:3000
 ```
 
-- **No external APIs** — zero network calls required.
+- **No external APIs are required for agent logic.** The local prototype does not require API keys, database access, or environment variables.
 - **No environment variables** — no `.env` file needed.
 - **No database** — all data is in-memory TypeScript objects in `data/`.
 - **No login** — the prototype is immediately accessible.
