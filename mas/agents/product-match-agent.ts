@@ -1,60 +1,55 @@
 /**
  * Product Match Agent
  *
- * Role: Receives the RiskContext from the Context & Risk Agent and
- * queries the product catalog (data/products.ts) to surface the most
- * relevant SKUs for the customer's problem.
+ * Role: Receives the TriageOutput, RiskOutput, and demo product catalog,
+ * then groups products into bundle sections based on risk priority and
+ * the sectionHint on each product.
  *
- * Applies risk-weighted ranking so that high-severity solutions are
- * surfaced first. Outputs a list of matched products with relevance scores.
+ * Section A — products for high-priority risks ("Mulai dari yang paling perlu")
+ * Section B — products for medium-priority improvements ("Tambahan yang disarankan")
  *
- * Phase: Architecture placeholder — full logic will be implemented in the next phase.
+ * Prototype: deterministic matching against the demo product list.
+ * Not connected to real QHomemart catalog or inventory systems.
  */
 
-import type { RiskContext } from "./context-risk-agent";
-import type { DemoProduct } from "@/data/products";
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-/** A product candidate with an associated relevance score. */
-export interface MatchedProduct {
-  /** Reference to the catalog product */
-  product: DemoProduct;
-  /** Relevance score (0–100) calculated from risk context */
-  relevanceScore: number;
-  /** Human-readable reason why this product was matched */
-  matchReason: string;
-}
-
-/** Output of the Product Match Agent. */
-export interface ProductMatchResult {
-  /** Risk context forwarded from upstream */
-  riskContext: RiskContext;
-  /** Ranked list of matched products */
-  matches: MatchedProduct[];
-}
-
-// ---------------------------------------------------------------------------
-// Agent Function
-// ---------------------------------------------------------------------------
+import type {
+  TriageOutput,
+  RiskOutput,
+  DemoProduct,
+  ProductMatchOutput,
+  MatchedProduct,
+} from "@/types/mas-types";
 
 /**
  * Runs the Product Match Agent.
  *
- * Placeholder implementation — returns an empty match list until the
- * product catalog and ranking logic are wired in the next phase.
+ * Groups demo products into Section A (highest-priority) and Section B
+ * (recommended additions) based on each product's sectionHint and the
+ * risk severity from the RiskOutput.
  *
- * @param riskContext - RiskContext produced by the Context & Risk Agent
- * @returns ProductMatchResult skeleton (stub until full implementation)
+ * @param triageOutput   - Output from the Customer Triage Agent
+ * @param riskOutput     - Output from the Context & Risk Agent
+ * @param products       - Demo product catalog from data/products.ts
+ * @returns ProductMatchOutput with products sorted into sections
  */
 export function runProductMatchAgent(
-  riskContext?: RiskContext
-): ProductMatchResult {
-  // TODO: Implement vector-similarity or rule-based product matching against data/products.ts
-  return {
-    riskContext: riskContext as RiskContext,
-    matches: [],
-  };
+  triageOutput: TriageOutput,
+  riskOutput: RiskOutput,
+  products: DemoProduct[]
+): ProductMatchOutput {
+  void triageOutput;
+  void riskOutput;
+
+  const sectionA: MatchedProduct[] = [];
+  const sectionB: MatchedProduct[] = [];
+
+  for (const product of products) {
+    if (product.sectionHint === "A") {
+      sectionA.push({ product, section: "A" });
+    } else {
+      sectionB.push({ product, section: "B" });
+    }
+  }
+
+  return { sectionA, sectionB };
 }

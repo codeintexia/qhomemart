@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect } from "react"
+import { runBathroomSafetyWorkflow } from "@/workflows/bathroom-safety-workflow"
 import {
   Search,
   Home,
@@ -20,6 +21,9 @@ import {
   Users,
   Sparkles,
 } from "lucide-react"
+
+// Run the multi-agent workflow once at module level for reproducible demo output
+const workflowOutput = runBathroomSafetyWorkflow()
 
 // Types
 type Screen = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
@@ -314,7 +318,7 @@ export default function MASQHomemart() {
   }
 
   const handleCopySummary = async () => {
-    const summaryText = "Pelanggan membutuhkan bantuan memilih solusi kamar mandi yang lebih aman untuk lansia. Masalah utama adalah lantai licin, kurang pegangan, dan cahaya kurang jelas. Prioritas awal adalah keset anti-slip, pegangan dinding, dan lampu kamar mandi yang lebih terang. Pelanggan memilih mulai dari opsi hemat, sehingga disarankan mulai dari barang yang paling penting terlebih dahulu. Jika diperlukan, staf dapat membantu mengecek opsi pemasangan atau renovasi ringan.";
+    const summaryText = workflowOutput.staffSummary;
     try {
       if (navigator?.clipboard?.writeText) {
         await navigator.clipboard.writeText(summaryText);
@@ -567,95 +571,75 @@ export default function MASQHomemart() {
     </div>
   )
 
-  // Screen 5: Solution Bundle Screen
-  const Screen5 = () => (
-    <div className="min-h-full flex flex-col animate-fade-in">
-      <ScreenHeader step={4} totalSteps={6} />
-      <div className="flex-1 px-5 pb-8">
-        <div className="mb-6 mt-4">
-          <h1 className="text-2xl font-bold text-[#1F2933] mb-2 text-balance">Paket solusi untuk Anda</h1>
-          <p className="text-[#667085] leading-relaxed">
-            Dimulai dari yang paling penting dan mudah dilakukan.
-          </p>
-        </div>
+  // Screen 5: Solution Bundle Screen — driven by workflowOutput.bundle
+  const Screen5 = () => {
+    const { bundle } = workflowOutput
+    const sectionColors: Record<string, string> = {
+      A: "bg-[#D71920]",
+      B: "bg-[#FFD21F]",
+      C: "bg-[#193B8C]",
+    }
+    const sectionTextColors: Record<string, string> = {
+      A: "text-white",
+      B: "text-[#1F2933]",
+      C: "text-white",
+    }
+    return (
+      <div className="min-h-full flex flex-col animate-fade-in">
+        <ScreenHeader step={4} totalSteps={6} />
+        <div className="flex-1 px-5 pb-8">
+          <div className="mb-6 mt-4">
+            <h1 className="text-2xl font-bold text-[#1F2933] mb-2 text-balance">{bundle.bundleTitle}</h1>
+            <p className="text-[#667085] leading-relaxed">{bundle.bundleSubtitle}</p>
+          </div>
 
-        {/* Section A */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-6 h-6 rounded-full bg-[#D71920] flex items-center justify-center">
-              <span className="text-white text-xs font-bold">A</span>
+          {bundle.sections.map((section) => (
+            <div key={section.sectionId} className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <div className={`w-6 h-6 rounded-full ${sectionColors[section.sectionId]} flex items-center justify-center`}>
+                  <span className={`${sectionTextColors[section.sectionId]} text-xs font-bold`}>{section.sectionId}</span>
+                </div>
+                <h3 className="font-semibold text-[#1F2933]">{section.label}</h3>
+              </div>
+              {section.sectionId !== "C" ? (
+                <div className="space-y-3">
+                  {section.items.map((item) => (
+                    <ProductCard
+                      key={item.name}
+                      name={item.name}
+                      reason={item.reason}
+                      budget={(item.budgetTier ?? "Hemat") as "Hemat" | "Sedang" | "Premium"}
+                      priority={(item.priority ?? "Sedang") as "Tinggi" | "Sedang"}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {section.items.map((item) => (
+                    <div key={item.name} className="p-4 bg-white rounded-xl border border-[#E5E7EB] shadow-sm">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Wrench className="w-5 h-5 text-[#193B8C]" />
+                        <h4 className="font-semibold text-[#1F2933]">{item.name}</h4>
+                      </div>
+                      <p className="text-sm text-[#667085] leading-relaxed">{item.reason}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <h3 className="font-semibold text-[#1F2933]">Mulai dari yang paling perlu</h3>
-          </div>
-          <div className="space-y-3">
-            <ProductCard
-              name="Keset anti-slip kamar mandi"
-              reason="Membantu mengurangi risiko terpeleset di lantai basah."
-              budget="Hemat"
-              priority="Tinggi"
-            />
-            <ProductCard
-              name="Pegangan dinding kamar mandi"
-              reason="Membantu pengguna berdiri dan bergerak lebih stabil."
-              budget="Sedang"
-              priority="Tinggi"
-            />
-          </div>
-        </div>
+          ))}
 
-        {/* Section B */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-6 h-6 rounded-full bg-[#FFD21F] flex items-center justify-center">
-              <span className="text-[#1F2933] text-xs font-bold">B</span>
-            </div>
-            <h3 className="font-semibold text-[#1F2933]">Tambahan yang disarankan</h3>
+          <div className="mt-auto">
+            <PrimaryButton onClick={() => navigate(6)} icon={ArrowRight}>
+              Buat ringkasan untuk staf
+            </PrimaryButton>
           </div>
-          <div className="space-y-3">
-            <ProductCard
-              name="Lampu kamar mandi lebih terang"
-              reason="Membantu melihat lantai basah dan area berisiko."
-              budget="Hemat"
-              priority="Sedang"
-            />
-            <ProductCard
-              name="Rak rendah yang mudah dijangkau"
-              reason="Mengurangi kebutuhan membungkuk atau meraih terlalu jauh."
-              budget="Hemat"
-              priority="Sedang"
-            />
-          </div>
-        </div>
-
-        {/* Section C */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-6 h-6 rounded-full bg-[#193B8C] flex items-center justify-center">
-              <span className="text-white text-xs font-bold">C</span>
-            </div>
-            <h3 className="font-semibold text-[#1F2933]">Jika butuh bantuan jasa</h3>
-          </div>
-          <div className="p-4 bg-white rounded-xl border border-[#E5E7EB] shadow-sm">
-            <div className="flex items-center gap-3 mb-2">
-              <Wrench className="w-5 h-5 text-[#193B8C]" />
-              <h4 className="font-semibold text-[#1F2933]">Cek pemasangan atau renovasi ringan</h4>
-            </div>
-            <p className="text-sm text-[#667085] leading-relaxed">
-              Tanyakan ke staf apakah layanan pemasangan atau renovasi ringan tersedia untuk kebutuhan ini.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-auto">
-          <PrimaryButton onClick={() => navigate(6)} icon={ArrowRight}>
-            Buat ringkasan untuk staf
-          </PrimaryButton>
         </div>
       </div>
-    </div>
-  )
+    )
+  }
 
-  // Screen 6: Staff Summary Screen
+  // Screen 6: Staff Summary Screen — driven by workflowOutput.staffSummary
   const Screen6 = () => (
     <div className="min-h-full flex flex-col animate-fade-in">
       <ScreenHeader step={6} totalSteps={6} />
@@ -675,11 +659,7 @@ export default function MASQHomemart() {
             <span className="font-semibold text-[#D71920]">Ringkasan Kebutuhan</span>
           </div>
           <p className="text-[#1F2933] leading-relaxed text-sm">
-            Pelanggan membutuhkan bantuan memilih solusi kamar mandi yang lebih aman untuk lansia. Masalah utama adalah
-            lantai licin, kurang pegangan, dan cahaya kurang jelas. Prioritas awal adalah keset anti-slip, pegangan
-            dinding, dan lampu kamar mandi yang lebih terang. Pelanggan memilih mulai dari opsi hemat, sehingga
-            disarankan mulai dari barang yang paling penting terlebih dahulu. Jika diperlukan, staf dapat membantu
-            mengecek opsi pemasangan atau renovasi ringan.
+            {workflowOutput.staffSummary}
           </p>
         </div>
 
@@ -712,85 +692,80 @@ export default function MASQHomemart() {
     </div>
   )
 
-  // Screen 7: Business Insight Screen
-  const Screen7 = () => (
-    <div className="min-h-full flex flex-col animate-fade-in">
-      <ScreenHeader isJudgeMode />
-      <div className="flex-1 px-5 pb-8">
-        <div className="mb-6 mt-4">
-          <h1 className="text-2xl font-bold text-[#1F2933] mb-2 text-balance">Insight untuk QHomemart</h1>
-          <p className="text-[#667085] leading-relaxed">
-            Setiap masalah pelanggan dapat menjadi sinyal untuk produk, layanan, promo, dan keputusan bisnis.
-          </p>
-        </div>
+  // Screen 7: Business Insight Screen — driven by workflowOutput.businessInsight
+  const Screen7 = () => {
+    const { businessInsight } = workflowOutput
+    return (
+      <div className="min-h-full flex flex-col animate-fade-in">
+        <ScreenHeader isJudgeMode />
+        <div className="flex-1 px-5 pb-8">
+          <div className="mb-6 mt-4">
+            <h1 className="text-2xl font-bold text-[#1F2933] mb-2 text-balance">Insight untuk QHomemart</h1>
+            <p className="text-[#667085] leading-relaxed">
+              Setiap masalah pelanggan dapat menjadi sinyal untuk produk, layanan, promo, dan keputusan bisnis.
+            </p>
+          </div>
 
-        <div className="space-y-4">
-          <InsightCard title="Masalah pelanggan" icon={Users}>
-            <p className="text-[#1F2933] mb-3">Kamar mandi licin untuk lansia</p>
-            <div className="flex flex-wrap gap-2">
-              {["Keamanan rumah", "Sanitary", "Lantai", "Pencahayaan"].map((tag) => (
-                <span key={tag} className="px-2 py-1 bg-[#193B8C]/10 text-[#193B8C] text-xs rounded-full font-medium">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </InsightCard>
+          <div className="space-y-4">
+            <InsightCard title="Masalah pelanggan" icon={Users}>
+              <p className="text-[#1F2933] mb-3">{businessInsight.problem}</p>
+              <div className="flex flex-wrap gap-2">
+                {businessInsight.productCategories.map((tag) => (
+                  <span key={tag} className="px-2 py-1 bg-[#193B8C]/10 text-[#193B8C] text-xs rounded-full font-medium">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </InsightCard>
 
-          <InsightCard title="Peluang paket" icon={Package}>
-            <p className="text-[#1F2933] font-medium mb-2">Paket Kamar Mandi Lebih Aman</p>
-            <div className="flex flex-wrap gap-2">
-              {["Anti-slip", "Pegangan", "Pencahayaan", "Rak rendah", "Opsi pemasangan"].map((item) => (
-                <span key={item} className="px-2 py-1 bg-[#FFD21F]/20 text-[#92700C] text-xs rounded-full font-medium">
-                  {item}
-                </span>
-              ))}
-            </div>
-          </InsightCard>
+            <InsightCard title="Peluang paket" icon={Package}>
+              <p className="text-[#1F2933] font-medium mb-2">{businessInsight.bundleOpportunity}</p>
+              <div className="flex flex-wrap gap-2">
+                {["Anti-slip", "Pegangan", "Pencahayaan", "Rak rendah", "Opsi pemasangan"].map((item) => (
+                  <span key={item} className="px-2 py-1 bg-[#FFD21F]/20 text-[#92700C] text-xs rounded-full font-medium">
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </InsightCard>
 
-          <InsightCard title="Peluang bisnis" icon={ShoppingBag}>
-            <ul className="space-y-2">
-              {[
-                "Meningkatkan peluang pembelian paket",
-                "Menghubungkan produk dengan layanan",
-                "Membantu staf memahami kebutuhan lebih cepat",
-                "Menghasilkan data masalah pelanggan",
-              ].map((item) => (
-                <li key={item} className="flex items-start gap-2 text-sm text-[#1F2933]">
-                  <Check className="w-4 h-4 text-[#16A34A] shrink-0 mt-0.5" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </InsightCard>
+            <InsightCard title="Peluang bisnis" icon={ShoppingBag}>
+              <ul className="space-y-2">
+                {businessInsight.businessOpportunities.map((item) => (
+                  <li key={item} className="flex items-start gap-2 text-sm text-[#1F2933]">
+                    <Check className="w-4 h-4 text-[#16A34A] shrink-0 mt-0.5" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </InsightCard>
 
-          <InsightCard title="Peluang digital marketing" icon={Lightbulb}>
-            <ul className="space-y-2">
-              {[
-                "Konten edukasi: Cara membuat kamar mandi lebih aman",
-                "Promo tematik: Paket kamar mandi aman",
-                "Segmentasi: caregiver, keluarga dengan lansia, rumah baru, renovasi kecil",
-              ].map((item) => (
-                <li key={item} className="flex items-start gap-2 text-sm text-[#1F2933]">
-                  <Sparkles className="w-4 h-4 text-[#FFD21F] shrink-0 mt-0.5" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </InsightCard>
-        </div>
+            <InsightCard title="Peluang digital marketing" icon={Lightbulb}>
+              <ul className="space-y-2">
+                {businessInsight.digitalMarketingOpportunities.map((item) => (
+                  <li key={item} className="flex items-start gap-2 text-sm text-[#1F2933]">
+                    <Sparkles className="w-4 h-4 text-[#FFD21F] shrink-0 mt-0.5" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </InsightCard>
+          </div>
 
-        <div className="mt-6">
-          <PrimaryButton onClick={() => navigate(8)} variant="secondary" icon={Cpu}>
-            Lihat log kerja AI
-          </PrimaryButton>
+          <div className="mt-6">
+            <PrimaryButton onClick={() => navigate(8)} variant="secondary" icon={Cpu}>
+              Lihat log kerja AI
+            </PrimaryButton>
+          </div>
         </div>
       </div>
-    </div>
-  )
+    )
+  }
 
-  // Screen 8: Multi-Agent Work Log Screen
+  // Screen 8: Multi-Agent Work Log Screen — driven by workflowOutput.interactionLog
   const Screen8 = () => {
     const [activeAgentIndex, setActiveAgentIndex] = useState(0)
+    const { interactionLog, technicalNote } = workflowOutput
 
     useEffect(() => {
       const interval = setInterval(() => {
@@ -798,34 +773,6 @@ export default function MASQHomemart() {
       }, 1200)
       return () => clearInterval(interval)
     }, [])
-
-    const agents = [
-      {
-        name: "Customer Triage Agent",
-        input: "Ibu saya lansia dan kamar mandi sering licin.",
-        output: "Masalah: kamar mandi licin. Pengguna utama: lansia. Preferensi: hemat dulu.",
-      },
-      {
-        name: "Context & Risk Agent",
-        output: "Risiko tinggi: terpeleset dan kurang pegangan. Risiko sedang: cahaya kurang jelas dan barang sulit dijangkau.",
-      },
-      {
-        name: "Product Match Agent",
-        output: "Kategori produk cocok: anti-slip, pegangan kamar mandi, pencahayaan, rak rendah.",
-      },
-      {
-        name: "Service Match Agent",
-        output: "Layanan terkait: cek pemasangan atau renovasi ringan jika diperlukan.",
-      },
-      {
-        name: "Bundle Strategy Agent",
-        output: "Menyusun solusi bertingkat: mulai dari yang paling perlu, tambahan yang disarankan, dan opsi bantuan jasa.",
-      },
-      {
-        name: "Staff & Insight Agent",
-        output: "Membuat ringkasan untuk staf dan insight peluang paket untuk QHomemart.",
-      },
-    ]
 
     const flowSteps = [
       "User Problem",
@@ -857,7 +804,7 @@ export default function MASQHomemart() {
                   <div
                     className={`px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all duration-300 ${
                         activeAgentIndex === index
-                          ? index === flowSteps.length - 1 
+                          ? index === flowSteps.length - 1
                             ? "bg-[#16A34A] text-white shadow-md shadow-[#16A34A]/20"
                             : "bg-[#D71920] text-white shadow-md shadow-[#D71920]/20"
                           : "bg-[#193B8C]/10 text-[#193B8C]"
@@ -871,24 +818,24 @@ export default function MASQHomemart() {
             </div>
           </div>
 
-          {/* Agent Cards */}
+          {/* Agent Cards from interaction log */}
           <div className="space-y-3 mb-6">
-            {agents.map((agent, index) => (
+            {interactionLog.map((logStep, index) => (
               <AgentCard
-                key={agent.name}
-                name={agent.name}
-                input={agent.input}
-                output={agent.output}
+                key={logStep.agentName}
+                name={logStep.agentName}
+                input={logStep.inputSummary}
+                output={logStep.outputSummary}
                 isActive={index === activeAgentIndex - 1}
                 index={index}
               />
             ))}
           </div>
 
-          {/* Technical Note */}
+          {/* Technical Note from workflow */}
           <div className="p-4 rounded-xl bg-[#F5F5F5] border border-[#E5E7EB] mb-6">
             <p className="text-xs text-[#667085] leading-relaxed">
-              <strong>Catatan teknis:</strong> Data demo menggunakan dummy data modular. Katalog produk, layanan, promo, stok, dan kanal WhatsApp dapat diganti dengan data QHomemart pada fase integrasi. Prototype ini belum terhubung ke sistem produksi QHomemart.
+              <strong>Catatan teknis:</strong> {technicalNote}
             </p>
           </div>
 

@@ -1,85 +1,68 @@
 /**
  * Context & Risk Agent
  *
- * Role: Receives the TriageSummary from the Customer Triage Agent and
- * enriches it with contextual risk factors — such as mobility limitations,
- * wet-area hazards, or structural constraints of the home.
+ * Role: Receives the TriageOutput from the Customer Triage Agent and
+ * identifies the specific risk factors present in the customer's home.
+ * Each risk is tagged with severity and priority order so downstream agents
+ * can rank their recommendations accordingly.
  *
- * Outputs a RiskContext object consumed by the Product Match Agent and
- * Bundle Strategy Agent to filter and rank appropriate solutions.
- *
- * Phase: Architecture placeholder — full logic will be implemented in the next phase.
+ * Prototype: deterministic for the bathroom-safety demo scenario.
+ * Not connected to real QHomemart systems.
  */
 
-import type { TriageSummary } from "./customer-triage-agent";
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-/** A discrete risk factor identified for the home environment. */
-export interface RiskFactor {
-  /** Short identifier, e.g. "slip-hazard" */
-  id: string;
-  /** Human-readable description */
-  description: string;
-  /** Severity score from 1 (low) to 5 (critical) */
-  severity: 1 | 2 | 3 | 4 | 5;
-}
-
-/** Enriched context produced by the Context & Risk Agent. */
-export interface RiskContext {
-  /** Original triage summary forwarded from upstream */
-  triage: TriageSummary;
-  /** List of identified risk factors */
-  riskFactors: RiskFactor[];
-  /** Composite risk score (0–100) */
-  compositeRiskScore: number;
-  /** Short narrative for the staff briefing */
-  riskNarrative: string;
-}
-
-// ---------------------------------------------------------------------------
-// Agent Function
-// ---------------------------------------------------------------------------
+import type { TriageOutput, RiskOutput, RiskItem } from "@/types/mas-types";
 
 /**
  * Runs the Context & Risk Agent.
  *
- * Placeholder implementation — analyses the triage summary to identify
- * environmental and personal risk factors relevant to the customer's home.
+ * Maps the triage output to a structured list of risk factors with severity
+ * ratings and priority order. For the bathroom-safety demo, four risks are
+ * always produced.
  *
- * @param triage - TriageSummary produced by the Customer Triage Agent
- * @returns RiskContext skeleton (stub until full implementation)
+ * @param triageOutput - Structured output from the Customer Triage Agent
+ * @returns RiskOutput containing all identified risks
  */
-export function runContextRiskAgent(triage?: TriageSummary): RiskContext {
-  // TODO: Implement risk factor extraction and composite scoring logic.
-  const demoTriage: TriageSummary = triage ?? {
-    category: "bathroom-safety",
-    urgency: "high",
-    tags: ["elderly", "slip-hazard", "bathroom"],
-    rawInput: {
-      problemDescription: "Demo: kamar mandi licin, lansia berisiko jatuh.",
-      ageGroup: "elderly",
+export function runContextRiskAgent(triageOutput: TriageOutput): RiskOutput {
+  void triageOutput; // used by downstream agents via workflow
+
+  const risks: RiskItem[] = [
+    {
+      id: "slip-hazard",
+      label: "Risiko terpeleset",
+      severity: "Tinggi",
+      reason:
+        "Lantai kamar mandi yang basah dan licin merupakan penyebab utama cedera jatuh pada lansia.",
+      priorityOrder: 1,
     },
-  };
+    {
+      id: "no-grab-support",
+      label: "Kurang pegangan",
+      severity: "Tinggi",
+      reason:
+        "Tanpa pegangan dinding, lansia kesulitan berdiri dan berpindah dengan stabil di kamar mandi.",
+      priorityOrder: 2,
+    },
+    {
+      id: "poor-lighting",
+      label: "Cahaya kurang jelas",
+      severity: "Sedang",
+      reason:
+        "Pencahayaan yang kurang mempersulit pengenalan bahaya seperti genangan air atau lantai basah.",
+      priorityOrder: 3,
+    },
+    {
+      id: "items-hard-to-reach",
+      label: "Barang sulit dijangkau",
+      severity: "Sedang",
+      reason:
+        "Membungkuk atau meraih barang yang jauh meningkatkan risiko kehilangan keseimbangan.",
+      priorityOrder: 4,
+    },
+  ];
 
   return {
-    triage: demoTriage,
-    riskFactors: [
-      {
-        id: "slip-hazard",
-        description: "Lantai kamar mandi licin tanpa alas anti-slip",
-        severity: 4,
-      },
-      {
-        id: "no-grab-bar",
-        description: "Tidak ada pegangan di area toilet / shower",
-        severity: 3,
-      },
-    ],
-    compositeRiskScore: 72,
+    risks,
     riskNarrative:
-      "Lansia dengan mobilitas terbatas di kamar mandi berisiko tinggi. Prioritaskan solusi anti-slip dan pegangan.",
+      "Dua risiko utama memerlukan perhatian segera: lantai licin dan kurangnya pegangan. Dua risiko tambahan — pencahayaan dan jangkauan barang — disarankan untuk ditangani setelah kebutuhan utama terpenuhi.",
   };
 }

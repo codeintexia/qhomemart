@@ -1,100 +1,74 @@
 /**
  * Staff & Insight Agent
  *
- * Role: Final agent in the pipeline. Consumes the BundleRecommendation
- * and all upstream context to generate two artefacts:
+ * Role: Final agent in the pipeline. Consumes all previous agent outputs
+ * to produce two artefacts:
  *
- *   1. StaffBriefing — a concise, action-ready summary that QHomemart
- *      staff can read before or during a customer interaction.
+ *   1. staffSummary — a concise, action-ready paragraph that QHomemart staff
+ *      can read quickly before or during a customer interaction.
  *
- *   2. BusinessInsight — aggregated signals (risk score, category trends,
- *      bundle value) that management / analytics can use to understand
- *      demand patterns and service opportunities.
+ *   2. businessInsight — aggregated signals (problem category, product
+ *      categories, bundle opportunity, business and marketing opportunities)
+ *      that management and analytics can use.
  *
- * Phase: Architecture placeholder — full logic will be implemented in the next phase.
+ * Prototype: text is fixed for the bathroom-safety demo for reproducibility.
+ * Not connected to real QHomemart CRM, analytics, or reporting systems.
  */
 
-import type { BundleRecommendation } from "./bundle-strategy-agent";
-import type { RiskContext } from "./context-risk-agent";
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-/** Concise briefing for QHomemart staff. */
-export interface StaffBriefing {
-  /** Name or role of the intended staff reader */
-  targetRole: string;
-  /** One-sentence situation summary */
-  situationSummary: string;
-  /** Top 3 recommended actions */
-  recommendedActions: string[];
-  /** Key talking points when presenting the bundle to the customer */
-  talkingPoints: string[];
-}
-
-/** Aggregated business signal for management / analytics. */
-export interface BusinessInsight {
-  /** Problem category this run belongs to */
-  category: string;
-  /** Composite risk score from the Context & Risk Agent */
-  compositeRiskScore: number;
-  /** Estimated bundle value in IDR */
-  estimatedBundleValueIdr: number;
-  /** Qualitative business opportunity note */
-  opportunityNote: string;
-}
-
-/** Combined output of the Staff & Insight Agent. */
-export interface StaffInsightOutput {
-  staffBriefing: StaffBriefing;
-  businessInsight: BusinessInsight;
-}
-
-// ---------------------------------------------------------------------------
-// Agent Function
-// ---------------------------------------------------------------------------
+import type {
+  TriageOutput,
+  RiskOutput,
+  ProductMatchOutput,
+  ServiceMatchOutput,
+  BundleOutput,
+  StaffInsightOutput,
+} from "@/types/mas-types";
 
 /**
  * Runs the Staff & Insight Agent.
  *
- * Placeholder implementation — returns stub staffBriefing and businessInsight
- * objects until the full summarisation and insight logic is implemented.
+ * Produces a fixed staff summary and structured business insight for the
+ * bathroom-safety demo. In a production integration phase, this function
+ * would generate text dynamically from all upstream agent outputs.
  *
- * @param bundle      - BundleRecommendation from the Bundle Strategy Agent
- * @param riskContext - RiskContext from the Context & Risk Agent
- * @returns StaffInsightOutput skeleton (stub until full implementation)
+ * @param triage    - Output from the Customer Triage Agent
+ * @param risks     - Output from the Context & Risk Agent
+ * @param products  - Output from the Product Match Agent
+ * @param services  - Output from the Service Match Agent
+ * @param bundle    - Output from the Bundle Strategy Agent
+ * @returns StaffInsightOutput containing staffSummary and businessInsight
  */
 export function runStaffInsightAgent(
-  bundle?: BundleRecommendation,
-  riskContext?: RiskContext
+  triage: TriageOutput,
+  risks: RiskOutput,
+  products: ProductMatchOutput,
+  services: ServiceMatchOutput,
+  bundle: BundleOutput
 ): StaffInsightOutput {
-  // TODO: Implement NLP summarisation and business insight aggregation.
+  void triage;
+  void risks;
+  void products;
+  void services;
   void bundle;
-  void riskContext;
 
   return {
-    staffBriefing: {
-      targetRole: "Sales Associate / Kasir QHomemart",
-      situationSummary:
-        "Pelanggan membutuhkan solusi keamanan kamar mandi untuk lansia.",
-      recommendedActions: [
-        "Arahkan ke lorong produk anti-slip (placeholder).",
-        "Tawarkan konsultasi pemasangan grab bar (placeholder).",
-        "Jelaskan paket bundel dan estimasi harga (placeholder).",
-      ],
-      talkingPoints: [
-        "Keamanan kamar mandi adalah investasi jangka panjang.",
-        "Produk anti-slip mengurangi risiko jatuh hingga X% (data placeholder).",
-        "Layanan pemasangan tersedia dalam 2–3 hari kerja (placeholder).",
-      ],
-    },
+    staffSummary:
+      "Pelanggan membutuhkan bantuan memilih solusi kamar mandi yang lebih aman untuk lansia. Masalah utama adalah lantai licin, kurang pegangan, dan cahaya kurang jelas. Prioritas awal adalah keset anti-slip, pegangan dinding, dan lampu kamar mandi yang lebih terang. Pelanggan memilih mulai dari opsi hemat, sehingga disarankan mulai dari barang yang paling penting terlebih dahulu. Jika diperlukan, staf dapat membantu mengecek opsi pemasangan atau renovasi ringan.",
     businessInsight: {
-      category: "bathroom-safety",
-      compositeRiskScore: 72,
-      estimatedBundleValueIdr: 0,
-      opportunityNote:
-        "Segmen lansia adalah kelompok dengan kebutuhan modifikasi rumah yang tinggi dan berulang (placeholder insight).",
+      problem: "Kamar mandi licin untuk lansia",
+      productCategories: ["Keamanan rumah", "Sanitary", "Lantai", "Pencahayaan"],
+      bundleOpportunity: "Paket Kamar Mandi Lebih Aman",
+      businessOpportunities: [
+        "Meningkatkan peluang pembelian paket",
+        "Menghubungkan produk dengan layanan",
+        "Membantu staf memahami kebutuhan lebih cepat",
+        "Menghasilkan data masalah pelanggan",
+      ],
+      digitalMarketingOpportunities: [
+        "Konten edukasi: Cara membuat kamar mandi lebih aman",
+        "Promo tematik: Paket kamar mandi aman",
+        "Segmentasi: caregiver, keluarga dengan lansia, rumah baru, renovasi kecil",
+      ],
     },
   };
 }

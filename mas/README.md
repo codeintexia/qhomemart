@@ -123,20 +123,17 @@ Demo data is being organized in the `data/` folder as fictional TypeScript objec
 
 ## Project Status
 
-**Phase: UI Freeze + Architecture Preparation**
+**Phase: Agent Simulation Layer v1.0**
 
-- ✅ UI frozen: MAS QHomemart UI v1.0 with 8 screens
-- ✅ Agent-oriented folder structure created
-- ✅ Agent placeholder functions created
-- ✅ Demo data scaffold created
-- ✅ Workflow orchestrator scaffold created
-- ✅ Interaction logger scaffold created
-- ✅ Documentation scaffold available
-- ⬜ Full agent reasoning logic
-- ⬜ UI-to-agent workflow connection
-- ⬜ Sample interaction log generated from workflow
-- ⬜ Final submission documentation polish
-- ⬜ Real QHomemart data integration, future phase
+- UI frozen: MAS QHomemart UI v1.0 with 8 screens
+- Agent-oriented folder structure created
+- Full agent reasoning logic implemented
+- UI-to-agent workflow connection done
+- Sample interaction log generated from workflow
+- Shared types in types/mas-types.ts
+- Documentation scaffold available
+- Final submission documentation polish (next)
+- Real QHomemart data integration, future phase
 
 ---
 

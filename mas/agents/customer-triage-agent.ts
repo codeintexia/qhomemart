@@ -1,66 +1,49 @@
 /**
  * Customer Triage Agent
  *
- * Role: First point of contact in the multi-agent pipeline.
- * Receives raw customer input (problem description, household context,
- * budget signal) and classifies the request into a structured triage summary.
+ * Role: First agent in the pipeline. Receives raw customer input —
+ * the user story, selected problem chips, and buying preference —
+ * and produces a structured TriageOutput that downstream agents use.
  *
- * Outputs a TriageSummary that downstream agents (Context & Risk, Product Match,
- * etc.) will use to refine their recommendations.
- *
- * Phase: Architecture placeholder — full logic will be implemented in the next phase.
+ * Prototype: uses modular dummy data. Not connected to real QHomemart systems.
  */
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
+import type {
+  CustomerInput,
+  TriageOutput,
+} from "@/types/mas-types";
 
-/** Raw input from the customer or staff capturing a home problem. */
-export interface CustomerInput {
-  /** Free-text description of the problem, e.g. "kamar mandi licin, nenek sering jatuh" */
-  problemDescription: string;
-  /** Age group of the primary occupant (optional) */
-  ageGroup?: "child" | "adult" | "elderly";
-  /** Rough budget signal in IDR (optional) */
-  budgetSignal?: number;
-  /** Additional context notes (optional) */
-  notes?: string;
-}
-
-/** Structured output produced by the Customer Triage Agent. */
-export interface TriageSummary {
-  /** Identified problem category */
-  category: string;
-  /** Urgency level assessed from the input */
-  urgency: "low" | "medium" | "high";
-  /** Key tags extracted from the problem description */
-  tags: string[];
-  /** Raw input forwarded for downstream agents */
-  rawInput: CustomerInput;
-}
-
-// ---------------------------------------------------------------------------
-// Agent Function
-// ---------------------------------------------------------------------------
+export type { CustomerInput };
 
 /**
  * Runs the Customer Triage Agent.
  *
- * Placeholder implementation — classifies and structures the customer's
- * problem statement so that downstream agents can act on it.
+ * Classifies the customer's problem story and selected chips into a
+ * structured triage summary. Reasoning is deterministic for the demo
+ * bathroom-safety scenario so the output is fully reproducible.
  *
- * @param input - Raw customer input captured via the UI
- * @returns TriageSummary skeleton (stub until full implementation)
+ * @param input - Raw customer input from the UI
+ * @returns TriageOutput
  */
-export function runCustomerTriageAgent(input?: CustomerInput): TriageSummary {
-  // TODO: Implement NLP-based classification and urgency scoring.
+export function runCustomerTriageAgent(input: CustomerInput): TriageOutput {
+  // Derive constraints from selected chips and buying preference
+  const constraints: string[] = ["mudah dipahami staf"];
+
+  if (
+    input.selectedChips.includes("Budget terbatas") ||
+    input.buyingPreference === "Hemat dulu"
+  ) {
+    constraints.unshift("budget terbatas", "mulai dari barang paling penting");
+  }
+
   return {
-    category: "bathroom-safety",
-    urgency: "high",
-    tags: ["elderly", "slip-hazard", "bathroom"],
-    rawInput: input ?? {
-      problemDescription: "Demo: kamar mandi licin, lansia berisiko jatuh.",
-      ageGroup: "elderly",
-    },
+    problemCategory: "Kamar mandi licin",
+    primarySpace: "Kamar mandi",
+    primaryUser: "Lansia",
+    constraints,
+    normalizedNeed:
+      "Solusi kamar mandi lebih aman untuk lansia dengan prioritas hemat.",
+    reasoning:
+      "Dari cerita dan pilihan kondisi, pelanggan mengidentifikasi kamar mandi sebagai ruang berisiko utama bagi anggota lansia. Pilihan 'Hemat dulu' menunjukkan prioritas biaya, sehingga saran dimulai dari produk paling esensial terlebih dahulu.",
   };
 }

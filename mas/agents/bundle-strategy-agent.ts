@@ -1,77 +1,87 @@
 /**
  * Bundle Strategy Agent
  *
- * Role: Receives matched products and services from the upstream agents
- * and applies bundle rules (data/bundle-rules.ts) to construct optimal
- * solution packages — balancing safety impact, customer budget, and
- * QHomemart margin guidelines.
+ * Role: Receives matched products, matched services, the customer buying
+ * preference, and bundle rules, then assembles the final three-section
+ * solution bundle to display in the UI.
  *
- * Outputs a recommended bundle with a total price estimate and a rationale
- * narrative for staff use.
+ * The buying preference ("Hemat dulu") influences how the bundle title and
+ * subtitle are framed. Items are always ordered: Section A → B → C.
  *
- * Phase: Architecture placeholder — full logic will be implemented in the next phase.
+ * Prototype: deterministic for the bathroom-safety demo.
+ * Not connected to real QHomemart pricing, margin, or promo systems.
  */
 
-import type { ProductMatchResult } from "./product-match-agent";
-import type { ServiceMatchResult } from "./service-match-agent";
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-/** A single line item in the recommended bundle. */
-export interface BundleLineItem {
-  /** Item type — either a product or a service */
-  type: "product" | "service";
-  /** Display name */
-  name: string;
-  /** Estimated price in IDR (demo value, not real QHomemart price) */
-  estimatedPriceIdr: number;
-  /** Why this item is included */
-  reason: string;
-}
-
-/** The complete bundle recommendation produced by this agent. */
-export interface BundleRecommendation {
-  /** Unique identifier for this bundle (used in logs) */
-  bundleId: string;
-  /** Human-readable bundle title */
-  title: string;
-  /** Ordered list of line items */
-  lineItems: BundleLineItem[];
-  /** Total estimated price in IDR */
-  totalEstimatedPriceIdr: number;
-  /** Narrative rationale for the bundle composition */
-  rationale: string;
-}
-
-// ---------------------------------------------------------------------------
-// Agent Function
-// ---------------------------------------------------------------------------
+import type {
+  ProductMatchOutput,
+  ServiceMatchOutput,
+  BuyingPreference,
+  BundleRulesConfig,
+  BundleOutput,
+  BundleSection,
+  BundleItem,
+} from "@/types/mas-types";
 
 /**
  * Runs the Bundle Strategy Agent.
  *
- * Placeholder implementation — returns an empty bundle skeleton until
- * bundle rules, pricing logic, and upstream agent results are wired in.
+ * Assembles the three-section bundle from product matches, service matches,
+ * and bundle rules. Section labels come from bundleRules.sections.
  *
- * @param productResult - Output from the Product Match Agent
- * @param serviceResult - Output from the Service Match Agent
- * @returns BundleRecommendation skeleton (stub until full implementation)
+ * @param productMatches   - Output from the Product Match Agent
+ * @param serviceMatches   - Output from the Service Match Agent
+ * @param buyingPreference - Customer buying preference from the UI
+ * @param bundleRulesConfig - Bundle section rules from data/bundle-rules.ts
+ * @returns BundleOutput with three sections
  */
 export function runBundleStrategyAgent(
-  productResult?: ProductMatchResult,
-  serviceResult?: ServiceMatchResult
-): BundleRecommendation {
-  // TODO: Implement bundle composition using data/bundle-rules.ts
-  void productResult;
-  void serviceResult;
+  productMatches: ProductMatchOutput,
+  serviceMatches: ServiceMatchOutput,
+  buyingPreference: BuyingPreference,
+  bundleRulesConfig: BundleRulesConfig
+): BundleOutput {
+  void buyingPreference; // framing is currently fixed for the demo
+
+  const sections: BundleSection[] = [];
+
+  for (const rule of bundleRulesConfig.sections) {
+    if (rule.sectionId === "A") {
+      const items: BundleItem[] = productMatches.sectionA.map((mp) => ({
+        type: "product",
+        name: mp.product.name,
+        reason: mp.product.reason,
+        budgetTier: mp.product.budgetTier,
+        priority: mp.product.priority,
+      }));
+      sections.push({ sectionId: "A", label: rule.label, items });
+    }
+
+    if (rule.sectionId === "B") {
+      const items: BundleItem[] = productMatches.sectionB.map((mp) => ({
+        type: "product",
+        name: mp.product.name,
+        reason: mp.product.reason,
+        budgetTier: mp.product.budgetTier,
+        priority: mp.product.priority,
+      }));
+      sections.push({ sectionId: "B", label: rule.label, items });
+    }
+
+    if (rule.sectionId === "C") {
+      const items: BundleItem[] = serviceMatches.sectionC.map((ms) => ({
+        type: "service",
+        name: ms.service.name,
+        reason: ms.service.description,
+        availabilityNote: ms.service.safeAvailabilityNote,
+      }));
+      sections.push({ sectionId: "C", label: rule.label, items });
+    }
+  }
+
   return {
-    bundleId: "bundle-bathroom-safety-demo-001",
-    title: "Paket Keamanan Kamar Mandi (Demo)",
-    lineItems: [],
-    totalEstimatedPriceIdr: 0,
-    rationale:
-      "Bundle placeholder — item dan harga akan diisi pada fase implementasi berikutnya.",
+    bundleTitle: "Paket solusi untuk Anda",
+    bundleSubtitle:
+      "Dimulai dari yang paling penting dan mudah dilakukan.",
+    sections,
   };
 }

@@ -1,60 +1,53 @@
 /**
  * Service Match Agent
  *
- * Role: Runs in parallel with or after the Product Match Agent.
- * Queries the service catalog (data/services.ts) to recommend
- * optional installation, inspection, or professional-consultation services
- * that complement the matched products.
+ * Role: Receives the TriageOutput, RiskOutput, and demo service catalog,
+ * then selects optional service guidance entries appropriate for Section C
+ * of the bundle ("Jika butuh bantuan jasa").
  *
- * Outputs a list of matched services with estimated effort and relevance.
+ * Important: This agent does NOT guarantee service availability.
+ * It returns guidance text that directs customers to ask a staff member.
  *
- * Phase: Architecture placeholder — full logic will be implemented in the next phase.
+ * Prototype: deterministic for the bathroom-safety demo.
+ * Not connected to real QHomemart service booking or availability systems.
  */
 
-import type { RiskContext } from "./context-risk-agent";
-import type { DemoService } from "@/data/services";
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-/** A service candidate with an associated relevance score. */
-export interface MatchedService {
-  /** Reference to the catalog service */
-  service: DemoService;
-  /** Relevance score (0–100) calculated from risk context */
-  relevanceScore: number;
-  /** Human-readable reason why this service was matched */
-  matchReason: string;
-}
-
-/** Output of the Service Match Agent. */
-export interface ServiceMatchResult {
-  /** Risk context forwarded from upstream */
-  riskContext: RiskContext;
-  /** Ranked list of matched services */
-  matches: MatchedService[];
-}
-
-// ---------------------------------------------------------------------------
-// Agent Function
-// ---------------------------------------------------------------------------
+import type {
+  TriageOutput,
+  RiskOutput,
+  DemoService,
+  ServiceMatchOutput,
+  MatchedService,
+} from "@/types/mas-types";
 
 /**
  * Runs the Service Match Agent.
  *
- * Placeholder implementation — returns an empty match list until the
- * service catalog and ranking logic are wired in the next phase.
+ * Selects all demo services as optional guidance for Section C.
+ * The availabilityNote is always surfaced so the UI can display it.
  *
- * @param riskContext - RiskContext produced by the Context & Risk Agent
- * @returns ServiceMatchResult skeleton (stub until full implementation)
+ * @param triageOutput  - Output from the Customer Triage Agent
+ * @param riskOutput    - Output from the Context & Risk Agent
+ * @param services      - Demo service catalog from data/services.ts
+ * @returns ServiceMatchOutput with optional service guidance for Section C
  */
 export function runServiceMatchAgent(
-  riskContext?: RiskContext
-): ServiceMatchResult {
-  // TODO: Implement service matching logic against data/services.ts
+  triageOutput: TriageOutput,
+  riskOutput: RiskOutput,
+  services: DemoService[]
+): ServiceMatchOutput {
+  void triageOutput;
+  void riskOutput;
+
+  const sectionC: MatchedService[] = services.map((service) => ({
+    service,
+    matchReason:
+      "Beberapa produk yang direkomendasikan mungkin memerlukan pemasangan. Staf dapat membantu mengecek apakah layanan tersedia.",
+  }));
+
   return {
-    riskContext: riskContext as RiskContext,
-    matches: [],
+    sectionC,
+    availabilityNote:
+      "Layanan ini bersifat arahan opsional dalam prototype dan belum terhubung ke sistem layanan produksi QHomemart.",
   };
 }
