@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+// next/font/google is intentionally removed.
+// Fonts are resolved via system font stack defined in globals.css.
+// This ensures the build is fully reproducible without network access.
 
 export const metadata: Metadata = {
   title: 'MAS QHomemart - Multi-Agent System Prototype',
