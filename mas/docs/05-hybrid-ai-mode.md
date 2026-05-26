@@ -7,7 +7,7 @@ MAS QHomemart is designed with a two-mode triage architecture:
 | Mode | Description | When Active |
 |------|-------------|-------------|
 | **Deterministic fallback** | Triage logic runs as a local TypeScript function. Output is reproducible across all environments. | Default — always active in the public demo |
-| **LLM-assisted triage** | An LLM provider classifies the customer's problem and returns structured JSON. | Optional — requires provider environment variables |
+| **LLM-assisted triage** | Sumopod API (OpenAI-compatible) classifies the customer's problem and returns structured JSON. | Optional — requires three environment variables |
 
 The public demo **always uses deterministic fallback** to ensure reproducibility.
 No network calls are made during the default demo run.
@@ -24,31 +24,36 @@ CustomerInput
 │  runHybridCustomerTriageAgent()              │
 │  agents/customer-triage-agent.ts            │
 │                                             │
-│  1. getLLMTriageAvailability()              │
+│  1. runOptionalLLMTriage(input)             │
 │     ai/llm-triage-adapter.ts               │
 │     → reads SUMOPOD_API_KEY, etc.           │
-│     → returns aiAvailable: true/false       │
+│     → if missing: returns null + fallback   │
+│     → if present: POST /chat/completions    │
+│       model: gemini/gemini-2.0-flash        │
+│       temperature: 0.1, max_tokens: 500     │
+│     → parse + validate JSON response        │
+│     → on any failure: returns null          │
 │                                             │
-│  2a. If not available:                      │
-│      runCustomerTriageAgent() ─────────────▶│ HybridTriageOutput
-│      (deterministic, sync)                  │  + aiMeta.aiMode = "deterministic-fallback"
+│  2a. candidate is null (fallback):          │
+│      runCustomerTriageAgent()  ────────────▶│ HybridTriageOutput
+│      (deterministic, sync)                  │  aiMeta.aiMode = "deterministic-fallback"
 │                                             │
-│  2b. If available (future):                 │
-│      runOptionalLLMTriage()                 │
-│      → buildTriagePrompt(input)             │
-│        ai/triage-prompt.ts                  │
-│      → [provider fetch — not yet impl.]     │
-│      → normalize LLM response              │
-│      → fallback to deterministic if invalid │
+│  2b. candidate is valid (LLM succeeded):    │
+│      normalizeLLMCandidate()   ────────────▶│ HybridTriageOutput
+│      (field-by-field merge with fallback)   │  aiMeta.aiMode = "llm-assisted"
 └─────────────────────────────────────────────┘
      │
      │ HybridTriageOutput (triage + aiMeta)
      ▼
-runBathroomSafetyWorkflow()
-  → all downstream agents remain deterministic
+runBathroomSafetyWorkflowAsync()
+  → downstream agents remain deterministic
   → aiMeta propagated to WorkflowRunResult
-  → aiMeta surfaced in Screen 8 UI badge
+  → aiMeta.aiMode surfaced in Screen 8 badge
 ```
+
+> **Note:** The public demo UI uses `runBathroomSafetyWorkflow()` (synchronous,
+> deterministic). The LLM-enabled path runs through `runBathroomSafetyWorkflowAsync()`,
+> which is designed for use in a server action, API route, or async runtime.
 
 ---
 
@@ -56,11 +61,12 @@ runBathroomSafetyWorkflow()
 
 | File | Role |
 |------|------|
-| `ai/triage-prompt.ts` | Builds the Indonesian-language LLM prompt for triage |
-| `ai/llm-triage-adapter.ts` | Provider-safe adapter; reads env vars; contains the provider TODO |
+| `ai/triage-prompt.ts` | Builds the Indonesian-language chat completion prompt |
+| `ai/llm-triage-adapter.ts` | OpenAI-compatible Sumopod adapter with full error handling |
 | `agents/customer-triage-agent.ts` | `runCustomerTriageAgent()` (sync, deterministic) + `runHybridCustomerTriageAgent()` (async, hybrid) |
-| `workflows/bathroom-safety-workflow.ts` | `runBathroomSafetyWorkflow()` (sync, UI-safe) + `runBathroomSafetyWorkflowAsync()` (async, for future LLM) |
+| `workflows/bathroom-safety-workflow.ts` | `runBathroomSafetyWorkflow()` (sync, UI-safe) + `runBathroomSafetyWorkflowAsync()` (async, LLM-enabled) |
 | `types/mas-types.ts` | `AIMode`, `AIExecutionMetadata`, `LLMTriageCandidate`, `HybridTriageOutput` |
+| `scripts/test-sumopod-triage.ts` | Developer test utility — run manually to verify provider connectivity |
 
 ---
 
@@ -69,28 +75,88 @@ runBathroomSafetyWorkflow()
 All three variables must be set to enable LLM mode. They are **optional** —
 the system works without them.
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `SUMOPOD_API_KEY` | API key for the LLM provider | `sk-...` |
-| `SUMOPOD_BASE_URL` | Base URL of the provider endpoint | `https://api.example.com` |
-| `SUMOPOD_MODEL` | Model identifier | `llama-3-8b-instruct` |
+| Variable | Description | Value |
+|----------|-------------|-------|
+| `SUMOPOD_API_KEY` | API key for authentication | Your Sumopod API key |
+| `SUMOPOD_BASE_URL` | Provider base URL | `https://ai.sumopod.com/v1` |
+| `SUMOPOD_MODEL` | Model to use for triage | `gemini/gemini-2.0-flash` |
 
 > **None of these variables are required for the public demo or build.**
 > The build passes with zero environment variables configured.
 
+The recommended model is **`gemini/gemini-2.0-flash`** — it is fast, low-cost,
+supports large context windows, and handles Indonesian JSON extraction well.
+
 ---
 
-## Adding a Provider Implementation
+## Enabling LLM Mode
 
-When a finalized provider API contract is available:
+### Option A — Shell export (local development)
 
-1. Open `ai/llm-triage-adapter.ts`
-2. Find the `TODO: Provider implementation` comment block
-3. Replace the placeholder `return` with the actual `fetch()` call
-4. Validate the LLM JSON response against `LLMTriageCandidate`
-5. The rest of the pipeline picks it up automatically
+```bash
+export SUMOPOD_API_KEY=your_key_here
+export SUMOPOD_BASE_URL=https://ai.sumopod.com/v1
+export SUMOPOD_MODEL=gemini/gemini-2.0-flash
+npx tsx mas/scripts/test-sumopod-triage.ts
+```
 
-No other files need to change. The downstream agents remain deterministic.
+### Option B — `.env.local` (Next.js, not committed to git)
+
+```bash
+# mas/.env.local  (gitignored)
+SUMOPOD_API_KEY=your_key_here
+SUMOPOD_BASE_URL=https://ai.sumopod.com/v1
+SUMOPOD_MODEL=gemini/gemini-2.0-flash
+```
+
+> `.env.local` is picked up automatically by Next.js dev server.
+> It is excluded from git via `.gitignore` (`*.env.*`).
+> **Never commit your API key.**
+
+---
+
+## Testing the Connection
+
+```bash
+SUMOPOD_API_KEY=your_key \
+SUMOPOD_BASE_URL=https://ai.sumopod.com/v1 \
+SUMOPOD_MODEL=gemini/gemini-2.0-flash \
+npx tsx mas/scripts/test-sumopod-triage.ts
+```
+
+Expected output when LLM succeeds:
+```
+aiMode      : llm-assisted
+aiAvailable : true
+aiProvider  : sumopod
+aiModel     : gemini/gemini-2.0-flash
+problemCategory : [from LLM]
+...
+```
+
+Expected output when env vars are missing:
+```
+aiMode      : deterministic-fallback
+aiAvailable : false
+```
+
+---
+
+## Fallback Behavior
+
+The adapter applies the deterministic fallback in every failure case:
+
+| Scenario | aiMode | aiAvailable |
+|----------|--------|-------------|
+| Env vars missing | `deterministic-fallback` | `false` |
+| HTTP error from provider | `deterministic-fallback` | `false` |
+| Empty response content | `deterministic-fallback` | `false` |
+| Invalid/incomplete JSON | `deterministic-fallback` | `false` |
+| Network exception | `deterministic-fallback` | `false` |
+| Valid JSON + all required fields present | `llm-assisted` | `true` |
+
+Individual LLM fields that are present but empty are filled field-by-field
+from the deterministic output via `normalizeLLMCandidate()`.
 
 ---
 
@@ -99,8 +165,22 @@ No other files need to change. The downstream agents remain deterministic.
 Screen 8 ("Log kerja multi-agent") displays a badge showing the triage mode
 used in the current run:
 
-- **"Mode: deterministic fallback"** — always shown in the public demo
-- **"Mode: LLM-assisted triage"** — shown only if a provider implementation responds successfully
+- **"Mode: deterministic fallback"** — shown in the public demo (no env vars)
+- **"Mode: LLM-assisted triage"** — shown when env vars are set and LLM call succeeds
+
+---
+
+## UI Path vs. LLM Path
+
+| Path | Function | LLM? | Used by |
+|------|----------|-------|---------|
+| Sync (default) | `runBathroomSafetyWorkflow()` | No | Public demo UI (`app/page.tsx`) |
+| Async (LLM-enabled) | `runBathroomSafetyWorkflowAsync()` | Yes | Server actions / API routes (future) |
+
+The public demo UI calls `runBathroomSafetyWorkflow()` at module level —
+this is a synchronous call and will always use the deterministic path.
+To surface LLM-assisted triage in the UI, integrate `runBathroomSafetyWorkflowAsync()`
+into a Next.js Server Action or Route Handler and pass the result to the client.
 
 ---
 
@@ -110,5 +190,6 @@ used in the current run:
 > - No real QHomemart production integration.
 > - No real inventory, pricing, or WhatsApp API.
 > - No guaranteed service availability.
-> - LLM integration, when added, will require validation before use in production.
+> - LLM output is validated before use; invalid responses fall back to deterministic output.
 > - The deterministic fallback ensures the demo always works, regardless of provider status.
+> - Do not commit API keys to the repository.

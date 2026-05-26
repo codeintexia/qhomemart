@@ -123,15 +123,24 @@ Demo data is being organized in the `data/` folder as fictional TypeScript objec
 
 ## Hybrid AI Mode
 
-The system supports an optional LLM-assisted triage layer.
-By default, the demo always uses deterministic fallback for reproducibility.
+The system supports optional LLM-assisted triage via Sumopod (OpenAI-compatible API).
+By default, the demo always uses deterministic fallback for full reproducibility.
 
 | Mode | Env vars required | Default |
 |------|-------------------|---------|
 | Deterministic fallback | None | Yes |
-| LLM-assisted triage | `SUMOPOD_API_KEY`, `SUMOPOD_BASE_URL`, `SUMOPOD_MODEL` | No |
+| LLM-assisted triage (Sumopod) | `SUMOPOD_API_KEY`, `SUMOPOD_BASE_URL`, `SUMOPOD_MODEL` | No |
 
-See `docs/05-hybrid-ai-mode.md` for architecture and how to add a provider.
+Recommended model: `gemini/gemini-2.0-flash`
+
+To enable LLM mode locally, create `mas/.env.local` (gitignored):
+```bash
+SUMOPOD_API_KEY=your_key_here
+SUMOPOD_BASE_URL=https://ai.sumopod.com/v1
+SUMOPOD_MODEL=gemini/gemini-2.0-flash
+```
+
+See `docs/05-hybrid-ai-mode.md` for full architecture, fallback behavior, and test instructions.
 
 Screen 8 shows a badge indicating which mode was used in the current run.
 
@@ -139,17 +148,18 @@ Screen 8 shows a badge indicating which mode was used in the current run.
 
 ## Project Status
 
-**Phase: Hybrid AI Credibility Patch v1.1**
+**Phase: Real Sumopod LLM Triage v1**
 
 - UI frozen: MAS QHomemart UI v1.0 with 8 screens
 - Agent-oriented folder structure created
-- Full agent reasoning logic implemented
+- Full agent reasoning logic implemented (deterministic)
 - UI-to-agent workflow connection done
 - Sample interaction log generated from workflow
 - Shared types in types/mas-types.ts
-- Hybrid AI triage architecture added (ai/ layer)
-- Deterministic fallback always active by default
+- Hybrid AI triage architecture (ai/ layer) with real Sumopod call
+- Deterministic fallback always active by default (no env vars needed)
 - AI mode badge on Screen 8
+- Developer test script: scripts/test-sumopod-triage.ts
 - Documentation updated (docs/05-hybrid-ai-mode.md)
 - Real QHomemart data integration, future phase
 

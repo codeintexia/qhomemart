@@ -251,6 +251,10 @@ export interface AIExecutionMetadata {
   aiAvailable: boolean;
   /** Human-readable reason why the mode was selected (especially for fallback). */
   aiReason?: string;
+  /** Provider identifier, e.g. "sumopod". Present when a provider was attempted. */
+  aiProvider?: string;
+  /** Model identifier used for the LLM call. Present when a provider was attempted. */
+  aiModel?: string;
 }
 
 /**

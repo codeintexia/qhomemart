@@ -2,24 +2,29 @@
  * LLM Triage Adapter — MAS QHomemart
  *
  * Provides a safe, provider-neutral interface for optional LLM-assisted triage.
+ * Implements a real OpenAI-compatible call to Sumopod when environment variables
+ * are configured.
  *
  * Design principles:
  * - NEVER crashes the workflow when LLM config is missing or invalid.
  * - ALWAYS returns a typed result — either an LLMTriageCandidate or fallback metadata.
- * - NEVER performs a real network call in the default demo mode.
+ * - Only makes a real network call when all three env vars are present.
+ * - Deterministic fallback is always the default when env vars are missing or
+ *   the LLM call fails for any reason.
  * - Reads configuration only from environment variables (never hardcoded).
  *
- * Supported environment variables (all optional):
- *   SUMOPOD_API_KEY    — API key for the configured LLM provider
- *   SUMOPOD_BASE_URL   — Base URL of the LLM provider endpoint
- *   SUMOPOD_MODEL      — Model identifier to request
+ * Confirmed Sumopod API:
+ *   Endpoint: POST {SUMOPOD_BASE_URL}/chat/completions
+ *   Compatible: OpenAI chat completions format
+ *   Recommended model: gemini/gemini-2.0-flash
  *
- * When all three variables are present, the adapter is "available" but
- * will still only call the provider if a concrete implementation exists
- * (see the TODO comment below). Currently the adapter always returns
- * "deterministic-fallback" because no provider contract has been finalized.
+ * Required environment variables (all optional for build and default demo):
+ *   SUMOPOD_API_KEY    — API key for authentication
+ *   SUMOPOD_BASE_URL   — e.g. https://ai.sumopod.com/v1
+ *   SUMOPOD_MODEL      — e.g. gemini/gemini-2.0-flash
  *
- * Prototype only. Not connected to any production LLM service.
+ * Prototype. Not a production autonomous AI system.
+ * Not connected to real QHomemart inventory, pricing, or WhatsApp.
  */
 
 import { buildTriagePrompt } from "@/ai/triage-prompt";
@@ -33,7 +38,7 @@ import type {
 // Provider config helpers
 // ---------------------------------------------------------------------------
 
-/** Reads and validates LLM provider environment variables. */
+/** Reads LLM provider environment variables. */
 function readProviderConfig(): {
   apiKey: string | undefined;
   baseUrl: string | undefined;
@@ -57,6 +62,46 @@ function isProviderConfigured(): boolean {
 }
 
 // ---------------------------------------------------------------------------
+// Response validation
+// ---------------------------------------------------------------------------
+
+/**
+ * Validates that an LLM response object contains all required fields.
+ * Returns true only if all six required string/array fields are present
+ * and non-empty. Does not throw — returns false on any issue.
+ */
+function isValidLLMCandidate(obj: unknown): obj is LLMTriageCandidate {
+  if (typeof obj !== "object" || obj === null) return false;
+  const c = obj as Record<string, unknown>;
+  return (
+    typeof c.problemCategory === "string" && c.problemCategory.length > 0 &&
+    typeof c.primarySpace === "string" && c.primarySpace.length > 0 &&
+    typeof c.primaryUser === "string" && c.primaryUser.length > 0 &&
+    Array.isArray(c.constraints) && c.constraints.length > 0 &&
+    typeof c.normalizedNeed === "string" && c.normalizedNeed.length > 0 &&
+    typeof c.reasoning === "string" && c.reasoning.length > 0
+  );
+}
+
+/**
+ * Safely parses a raw LLM response string as JSON.
+ * Strips markdown code fences if present (e.g., ```json ... ```).
+ * Returns null on any parse failure — never throws.
+ */
+function safeParseJSON(raw: string): unknown {
+  try {
+    // Strip markdown code fences if the model wrapped the JSON
+    const cleaned = raw
+      .replace(/^```(?:json)?\s*/i, "")
+      .replace(/\s*```\s*$/, "")
+      .trim();
+    return JSON.parse(cleaned);
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
@@ -69,35 +114,38 @@ function isProviderConfigured(): boolean {
  * @returns AIExecutionMetadata with aiAvailable reflecting env var presence
  */
 export function getLLMTriageAvailability(): AIExecutionMetadata {
+  const { model } = readProviderConfig();
   if (!isProviderConfigured()) {
     return {
       aiMode: "deterministic-fallback",
       aiAvailable: false,
-      aiReason: "LLM environment variables are not configured. Set SUMOPOD_API_KEY, SUMOPOD_BASE_URL, and SUMOPOD_MODEL to enable LLM-assisted triage.",
+      aiReason:
+        "LLM environment variables are not configured. Set SUMOPOD_API_KEY, SUMOPOD_BASE_URL, and SUMOPOD_MODEL to enable LLM-assisted triage.",
     };
   }
 
-  // Provider env vars are present but provider integration is not yet implemented.
-  // Return "available" flag so downstream code can distinguish "not configured"
-  // from "configured but no implementation yet".
   return {
     aiMode: "deterministic-fallback",
     aiAvailable: true,
-    aiReason: "LLM provider environment variables are configured but provider integration is not yet implemented. Falling back to deterministic triage.",
+    aiProvider: "sumopod",
+    aiModel: model,
+    aiReason:
+      "LLM provider is configured. Call runOptionalLLMTriage() to attempt LLM-assisted triage.",
   };
 }
 
 /**
- * Attempts optional LLM-assisted triage for the given customer input.
+ * Attempts optional LLM-assisted triage via the Sumopod OpenAI-compatible API.
  *
- * Returns either:
- *   - A validated LLMTriageCandidate (when LLM responds successfully), OR
- *   - null (when LLM is unavailable, unconfigured, or returns invalid output)
- *
- * Also returns AIExecutionMetadata describing what actually happened.
+ * Behaviour matrix:
+ *   - Env vars missing → returns null candidate + deterministic-fallback metadata
+ *   - Env vars present, fetch succeeds, valid JSON → returns LLMTriageCandidate + llm-assisted metadata
+ *   - Env vars present, fetch fails or invalid JSON → returns null candidate + deterministic-fallback metadata
  *
  * This function NEVER throws. All errors are caught and result in a null
  * candidate with "deterministic-fallback" metadata.
+ *
+ * Token usage is kept low via max_tokens: 500 and temperature: 0.1.
  *
  * @param input - Raw customer input from the UI
  * @returns Object with optional candidate and required aiMeta
@@ -105,6 +153,8 @@ export function getLLMTriageAvailability(): AIExecutionMetadata {
 export async function runOptionalLLMTriage(
   input: CustomerInput
 ): Promise<{ candidate: LLMTriageCandidate | null; aiMeta: AIExecutionMetadata }> {
+  const config = readProviderConfig();
+
   // Guard: check env config before attempting anything
   if (!isProviderConfigured()) {
     return {
@@ -117,45 +167,107 @@ export async function runOptionalLLMTriage(
     };
   }
 
-  // Build the prompt (this is safe — no network call)
-  const prompt = buildTriagePrompt(input);
-  void prompt; // consumed by provider implementation below
+  // Build the structured Indonesian-language prompt
+  const userPrompt = buildTriagePrompt(input);
 
-  // ---------------------------------------------------------------------------
-  // TODO: Provider implementation
-  //
-  // When a finalized Sumopod (or other) API contract is available, replace
-  // this block with the actual fetch call. Example structure:
-  //
-  //   const config = readProviderConfig();
-  //   const response = await fetch(`${config.baseUrl}/v1/chat/completions`, {
-  //     method: "POST",
-  //     headers: {
-  //       "Authorization": `Bearer ${config.apiKey}`,
-  //       "Content-Type": "application/json",
-  //     },
-  //     body: JSON.stringify({
-  //       model: config.model,
-  //       messages: [{ role: "user", content: prompt }],
-  //       temperature: 0,
-  //     }),
-  //   });
-  //   const json = await response.json();
-  //   const rawText = json.choices?.[0]?.message?.content ?? "";
-  //   const candidate = parseAndValidateLLMResponse(rawText);
-  //   return { candidate, aiMeta: { aiMode: "llm-assisted", aiAvailable: true } };
-  //
-  // Do NOT implement this without a confirmed provider API contract.
-  // The exact request/response shape must be verified against provider docs first.
-  // ---------------------------------------------------------------------------
+  try {
+    const endpoint = `${config.baseUrl}/chat/completions`;
 
-  return {
-    candidate: null,
-    aiMeta: {
-      aiMode: "deterministic-fallback",
-      aiAvailable: true,
-      aiReason:
-        "LLM provider environment variables are configured but provider integration is not yet implemented. Falling back to deterministic triage.",
-    },
-  };
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${config.apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: config.model,
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a careful Indonesian home-improvement triage assistant. Return only valid JSON. Do not include markdown.",
+          },
+          {
+            role: "user",
+            content: userPrompt,
+          },
+        ],
+        temperature: 0.1,
+        max_tokens: 500,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "(unreadable)");
+      return {
+        candidate: null,
+        aiMeta: {
+          aiMode: "deterministic-fallback",
+          aiAvailable: false,
+          aiProvider: "sumopod",
+          aiModel: config.model,
+          aiReason: `Sumopod API returned HTTP ${response.status}: ${errorText.slice(0, 120)}`,
+        },
+      };
+    }
+
+    // Parse the OpenAI-compatible response envelope
+    const envelope = await response.json() as {
+      choices?: Array<{ message?: { content?: string } }>;
+    };
+
+    const rawContent = envelope?.choices?.[0]?.message?.content ?? "";
+    if (!rawContent) {
+      return {
+        candidate: null,
+        aiMeta: {
+          aiMode: "deterministic-fallback",
+          aiAvailable: false,
+          aiProvider: "sumopod",
+          aiModel: config.model,
+          aiReason: "Sumopod returned an empty response content.",
+        },
+      };
+    }
+
+    // Safely parse the LLM's JSON output
+    const parsed = safeParseJSON(rawContent);
+    if (!isValidLLMCandidate(parsed)) {
+      return {
+        candidate: null,
+        aiMeta: {
+          aiMode: "deterministic-fallback",
+          aiAvailable: false,
+          aiProvider: "sumopod",
+          aiModel: config.model,
+          aiReason:
+            "Sumopod response did not pass validation (missing required triage fields). Deterministic fallback used.",
+        },
+      };
+    }
+
+    // Success — return validated LLM candidate
+    return {
+      candidate: parsed,
+      aiMeta: {
+        aiMode: "llm-assisted",
+        aiAvailable: true,
+        aiProvider: "sumopod",
+        aiModel: config.model,
+      },
+    };
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error ? err.message : String(err);
+    return {
+      candidate: null,
+      aiMeta: {
+        aiMode: "deterministic-fallback",
+        aiAvailable: false,
+        aiProvider: "sumopod",
+        aiModel: config.model,
+        aiReason: `LLM triage failed; deterministic fallback used. Error: ${message.slice(0, 120)}`,
+      },
+    };
+  }
 }
