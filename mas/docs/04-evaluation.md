@@ -154,10 +154,11 @@ npm run dev                # start dev server at http://localhost:3000
 
 ## Summary Table
 
-| Criterion | Evidence Location | Status (v1.0) |
+| Criterion | Evidence Location | Status (v1.1) |
 |-----------|-------------------|----------------|
-| Agent reasoning quality | `agents/`, `data/bundle-rules.ts` | Implemented as deterministic local TypeScript functions |
-| Agent collaboration | `workflows/bathroom-safety-workflow.ts` | Full 6-agent pipeline running; 6-step interaction log captured |
-| Business impact | `data/demo-scenario.ts`, `agents/staff-insight-agent.ts`, `app/page.tsx` | Staff summary and business insight drive Screen 6 and Screen 7 |
-| Architecture clarity | `docs/01-architecture.md`, `types/mas-types.ts`, folder structure | Self-documenting structure; all types centralised |
-| Reproducibility | `logs/sample-bathroom-run.ts`, `docs/03-reproducibility.md` | 3-command setup; deterministic sample log exported |
+| Agent reasoning quality | agents/, data/bundle-rules.ts | Implemented as deterministic local TypeScript functions |
+| Agent collaboration | workflows/bathroom-safety-workflow.ts | Full 6-agent pipeline running; 6-step interaction log captured |
+| Business impact | data/demo-scenario.ts, agents/staff-insight-agent.ts, app/page.tsx | Staff summary and business insight drive Screen 6 and Screen 7 |
+| Architecture clarity | docs/01-architecture.md, types/mas-types.ts, folder structure | Self-documenting structure; all types centralised |
+| Reproducibility | logs/sample-bathroom-run.ts, docs/03-reproducibility.md | 3-command setup; deterministic sample log exported |
+| Hybrid AI architecture | ai/, docs/05-hybrid-ai-mode.md | Optional LLM triage layer implemented with safe deterministic fallback |

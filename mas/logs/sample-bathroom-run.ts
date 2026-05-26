@@ -8,6 +8,12 @@
  * This file also serves as a smoke test — if the workflow function throws,
  * the build will fail, catching integration errors early.
  *
+ * AI mode note:
+ * The sample always runs in "deterministic-fallback" mode because no LLM
+ * environment variables are configured at build time. This is intentional —
+ * reproducibility requires deterministic output.
+ * sampleBathroomRun.aiMeta.aiMode will be "deterministic-fallback".
+ *
  * Prototype only. Not connected to real QHomemart systems.
  */
 
@@ -18,8 +24,8 @@ import type { WorkflowRunResult } from "@/types/mas-types";
  * Reproducible sample output of the Bathroom Safety multi-agent workflow.
  *
  * Generated at module load time using the default demo scenario inputs.
- * Full log will continue to be generated dynamically at runtime in subsequent
- * implementation phases.
+ * aiMeta.aiMode is always "deterministic-fallback" in this sample because
+ * no LLM provider is configured at build time.
  */
 export const sampleBathroomRun: WorkflowRunResult =
   runBathroomSafetyWorkflow();

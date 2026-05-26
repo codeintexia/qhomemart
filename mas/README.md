@@ -121,9 +121,25 @@ Demo data is being organized in the `data/` folder as fictional TypeScript objec
 
 ---
 
+## Hybrid AI Mode
+
+The system supports an optional LLM-assisted triage layer.
+By default, the demo always uses deterministic fallback for reproducibility.
+
+| Mode | Env vars required | Default |
+|------|-------------------|---------|
+| Deterministic fallback | None | Yes |
+| LLM-assisted triage | `SUMOPOD_API_KEY`, `SUMOPOD_BASE_URL`, `SUMOPOD_MODEL` | No |
+
+See `docs/05-hybrid-ai-mode.md` for architecture and how to add a provider.
+
+Screen 8 shows a badge indicating which mode was used in the current run.
+
+---
+
 ## Project Status
 
-**Phase: Agent Simulation Layer v1.0**
+**Phase: Hybrid AI Credibility Patch v1.1**
 
 - UI frozen: MAS QHomemart UI v1.0 with 8 screens
 - Agent-oriented folder structure created
@@ -131,8 +147,10 @@ Demo data is being organized in the `data/` folder as fictional TypeScript objec
 - UI-to-agent workflow connection done
 - Sample interaction log generated from workflow
 - Shared types in types/mas-types.ts
-- Documentation scaffold available
-- Final submission documentation polish (next)
+- Hybrid AI triage architecture added (ai/ layer)
+- Deterministic fallback always active by default
+- AI mode badge on Screen 8
+- Documentation updated (docs/05-hybrid-ai-mode.md)
 - Real QHomemart data integration, future phase
 
 ---

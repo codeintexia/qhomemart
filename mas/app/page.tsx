@@ -765,7 +765,7 @@ export default function MASQHomemart() {
   // Screen 8: Multi-Agent Work Log Screen — driven by workflowOutput.interactionLog
   const Screen8 = () => {
     const [activeAgentIndex, setActiveAgentIndex] = useState(0)
-    const { interactionLog, technicalNote } = workflowOutput
+    const { interactionLog, technicalNote, aiMeta } = workflowOutput
 
     useEffect(() => {
       const interval = setInterval(() => {
@@ -830,6 +830,21 @@ export default function MASQHomemart() {
                 index={index}
               />
             ))}
+          </div>
+
+          {/* AI Mode Badge — shows which triage mode was used */}
+          <div className="flex items-center gap-2 mb-4">
+            <div
+              className={`px-3 py-1.5 rounded-full text-xs font-medium ${
+                aiMeta.aiMode === "llm-assisted"
+                  ? "bg-[#16A34A]/10 text-[#16A34A] border border-[#16A34A]/20"
+                  : "bg-[#193B8C]/10 text-[#193B8C] border border-[#193B8C]/20"
+              }`}
+            >
+              {aiMeta.aiMode === "llm-assisted"
+                ? "Mode: LLM-assisted triage"
+                : "Mode: deterministic fallback"}
+            </div>
           </div>
 
           {/* Technical Note from workflow */}

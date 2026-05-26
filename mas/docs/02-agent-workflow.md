@@ -116,11 +116,15 @@ Customer Problem (Free-text or structured input)
 
 The workflow orchestrator (`workflows/bathroom-safety-workflow.ts`) coordinates the full pipeline end-to-end. It:
 
-1. Accepts optional `CustomerInput` (falls back to `data/demo-scenario.ts` defaults).
-2. Calls agents in the sequence above.
-3. Passes basic typed outputs between agents explicitly — no shared mutable state.
-4. Calls `createInteractionLogEntry()` to produce a structured log.
-5. Returns a `WorkflowRunResult` that the UI can render.
+1. Accepts optional `CustomerInput` (falls back to the canonical demo scenario defaults).
+2. Calls `getLLMTriageAvailability()` to check if an optional LLM provider is configured.
+3. Calls the triage agent (deterministic by default; LLM-assisted when a provider is implemented).
+4. Calls downstream agents (steps 2–6) in sequence — all deterministic.
+5. Passes structured typed outputs between agents — no shared mutable state.
+6. Calls `createInteractionLogEntry()` after each agent to produce a structured log.
+7. Returns a `WorkflowRunResult` including `aiMeta` that the UI can render.
+
+See `docs/05-hybrid-ai-mode.md` for the hybrid AI architecture detail.
 
 ---
 
@@ -137,6 +141,8 @@ The workflow orchestrator (`workflows/bathroom-safety-workflow.ts`) coordinates 
 
 ## Current Phase Status
 
-> All agent functions are **architecture placeholders** in this phase.
-> They return stub objects that follow basic type contracts but do not implement real reasoning logic.
-> Full agent logic will be implemented in the next phase.
+All six agent functions are fully implemented as deterministic local TypeScript functions.
+The triage agent additionally supports an optional hybrid AI mode via `runHybridCustomerTriageAgent()`.
+Downstream agents (steps 2–6) remain deterministic in both modes.
+
+See `docs/05-hybrid-ai-mode.md` for the hybrid AI architecture.

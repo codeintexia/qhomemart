@@ -232,6 +232,49 @@ export interface StaffInsightOutput {
 }
 
 // ---------------------------------------------------------------------------
+// Hybrid AI Mode Types
+// ---------------------------------------------------------------------------
+
+/**
+ * Whether a triage step used LLM-assisted reasoning or deterministic fallback.
+ *
+ * "llm-assisted"         — an LLM provider responded with valid structured output.
+ * "deterministic-fallback" — no provider available; deterministic logic was used.
+ */
+export type AIMode = "llm-assisted" | "deterministic-fallback";
+
+/** Metadata about how a triage step was executed. */
+export interface AIExecutionMetadata {
+  /** The mode actually used in this run. */
+  aiMode: AIMode;
+  /** True if an LLM provider was available and responded successfully. */
+  aiAvailable: boolean;
+  /** Human-readable reason why the mode was selected (especially for fallback). */
+  aiReason?: string;
+}
+
+/**
+ * Structured JSON candidate returned by an LLM provider.
+ * All fields are optional — the adapter validates and fills missing values
+ * from the deterministic fallback before accepting this as triage output.
+ */
+export interface LLMTriageCandidate {
+  problemCategory?: string;
+  primarySpace?: string;
+  primaryUser?: string;
+  constraints?: string[];
+  normalizedNeed?: string;
+  riskHints?: string[];
+  reasoning?: string;
+}
+
+/** Triage output enriched with AI execution metadata. */
+export interface HybridTriageOutput extends TriageOutput {
+  /** Metadata about how this triage step was executed. */
+  aiMeta: AIExecutionMetadata;
+}
+
+// ---------------------------------------------------------------------------
 // Interaction Log
 // ---------------------------------------------------------------------------
 
@@ -258,6 +301,8 @@ export interface WorkflowMetrics {
   staffSummaryGenerated: boolean;
   businessInsightGenerated: boolean;
   agentStepsLogged: number;
+  /** AI mode used by the triage step in this run. */
+  triageAiMode: AIMode;
 }
 
 // ---------------------------------------------------------------------------
@@ -283,4 +328,6 @@ export interface WorkflowRunResult {
   interactionLog: InteractionLogStep[];
   metrics: WorkflowMetrics;
   technicalNote: string;
+  /** AI execution metadata from the triage step. Always present. */
+  aiMeta: AIExecutionMetadata;
 }

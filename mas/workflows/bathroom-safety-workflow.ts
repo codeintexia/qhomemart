@@ -11,23 +11,38 @@
  *                     Kurang pegangan, Cahaya kurang terang, Budget terbatas
  *   - Buying preference: "Hemat dulu"
  *
- * The function is pure and deterministic — calling it multiple times with the
- * same input always produces the same output.
+ * Two workflow functions are provided:
+ *
+ *   runBathroomSafetyWorkflow(input?)
+ *     Synchronous. Deterministic. Uses the deterministic triage agent directly.
+ *     Safe to call at module level (e.g., in Next.js page.tsx).
+ *     aiMeta is populated via getLLMTriageAvailability() — no network call.
+ *
+ *   runBathroomSafetyWorkflowAsync(input?)
+ *     Async. Uses runHybridCustomerTriageAgent() which checks for optional LLM.
+ *     For future use when an LLM provider integration is implemented.
+ *     Not used by the public demo UI.
  *
  * Prototype only. Not connected to real QHomemart production systems.
  */
 
-import { runCustomerTriageAgent } from "@/agents/customer-triage-agent";
+import { runCustomerTriageAgent, runHybridCustomerTriageAgent } from "@/agents/customer-triage-agent";
 import { runContextRiskAgent } from "@/agents/context-risk-agent";
 import { runProductMatchAgent } from "@/agents/product-match-agent";
 import { runServiceMatchAgent } from "@/agents/service-match-agent";
 import { runBundleStrategyAgent } from "@/agents/bundle-strategy-agent";
 import { runStaffInsightAgent } from "@/agents/staff-insight-agent";
 import { createInteractionLogEntry } from "@/workflows/interaction-logger";
+import { getLLMTriageAvailability } from "@/ai/llm-triage-adapter";
 import { demoProducts } from "@/data/products";
 import { demoServices } from "@/data/services";
 import { bundleRules } from "@/data/bundle-rules";
-import type { CustomerInput, WorkflowRunResult } from "@/types/mas-types";
+import type {
+  CustomerInput,
+  WorkflowRunResult,
+  AIExecutionMetadata,
+  TriageOutput,
+} from "@/types/mas-types";
 
 // ---------------------------------------------------------------------------
 // Default demo input
@@ -48,33 +63,29 @@ const DEFAULT_INPUT: CustomerInput = {
 };
 
 // ---------------------------------------------------------------------------
-// Orchestrator
+// Shared pipeline — called by both sync and async variants
 // ---------------------------------------------------------------------------
 
-/**
- * Runs the complete Bathroom Safety multi-agent workflow.
- *
- * Executes all six agents in sequence, logs each step, computes metrics,
- * and returns a fully structured WorkflowRunResult.
- *
- * @param input - Optional customer input; falls back to the canonical demo scenario
- * @returns WorkflowRunResult — the complete, reproducible workflow output
- */
-export function runBathroomSafetyWorkflow(
-  input?: CustomerInput
+function buildWorkflowResult(
+  customerInput: CustomerInput,
+  triage: TriageOutput,
+  aiMeta: AIExecutionMetadata
 ): WorkflowRunResult {
-  const customerInput = input ?? DEFAULT_INPUT;
   const interactionLog = [];
 
   // Step 1 — Customer Triage Agent
-  const triage = runCustomerTriageAgent(customerInput);
+  const aiModeLabel =
+    aiMeta.aiMode === "llm-assisted" ? "LLM-assisted triage" : "deterministic fallback";
   interactionLog.push(
     createInteractionLogEntry({
       stepNumber: 1,
       agentName: "Customer Triage Agent",
       inputSummary: `Cerita: "${customerInput.userStory}" | Chips: ${customerInput.selectedChips.join(", ")} | Preferensi: ${customerInput.buyingPreference}`,
-      outputSummary: `Masalah: ${triage.problemCategory}. Pengguna utama: ${triage.primaryUser}. Preferensi: ${customerInput.buyingPreference}.`,
-      structuredOutput: triage as unknown as Record<string, unknown>,
+      outputSummary: `Masalah: ${triage.problemCategory}. Pengguna utama: ${triage.primaryUser}. Preferensi: ${customerInput.buyingPreference}. Mode: ${aiModeLabel}.`,
+      structuredOutput: {
+        ...(triage as unknown as Record<string, unknown>),
+        aiMeta,
+      },
     })
   );
 
@@ -93,8 +104,7 @@ export function runBathroomSafetyWorkflow(
 
   // Step 3 — Product Match Agent
   const products = runProductMatchAgent(triage, risks, demoProducts);
-  const totalProducts =
-    products.sectionA.length + products.sectionB.length;
+  const totalProducts = products.sectionA.length + products.sectionB.length;
   interactionLog.push(
     createInteractionLogEntry({
       stepNumber: 3,
@@ -139,13 +149,7 @@ export function runBathroomSafetyWorkflow(
   );
 
   // Step 6 — Staff & Insight Agent
-  const staffInsight = runStaffInsightAgent(
-    triage,
-    risks,
-    products,
-    services,
-    bundle
-  );
+  const staffInsight = runStaffInsightAgent(triage, risks, products, services, bundle);
   interactionLog.push(
     createInteractionLogEntry({
       stepNumber: 6,
@@ -156,7 +160,6 @@ export function runBathroomSafetyWorkflow(
     })
   );
 
-  // Compute metrics
   const metrics = {
     risksDetected: risks.risks.length,
     highPriorityRisks: highPriorityRisks.length,
@@ -167,6 +170,7 @@ export function runBathroomSafetyWorkflow(
     businessInsightGenerated:
       staffInsight.businessInsight.businessOpportunities.length > 0,
     agentStepsLogged: interactionLog.length,
+    triageAiMode: aiMeta.aiMode,
   };
 
   return {
@@ -188,5 +192,53 @@ export function runBathroomSafetyWorkflow(
     metrics,
     technicalNote:
       "Data demo menggunakan dummy data modular. Katalog produk, layanan, promo, stok, dan kanal WhatsApp dapat diganti dengan data QHomemart pada fase integrasi. Prototype ini belum terhubung ke sistem produksi QHomemart.",
+    aiMeta,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Synchronous workflow (used by public demo UI)
+// ---------------------------------------------------------------------------
+
+/**
+ * Runs the complete Bathroom Safety multi-agent workflow synchronously.
+ *
+ * Uses the deterministic triage agent directly. AI mode metadata is populated
+ * via getLLMTriageAvailability() (no network call). Safe to call at module level.
+ *
+ * @param input - Optional customer input; falls back to the canonical demo scenario
+ * @returns WorkflowRunResult — complete, reproducible workflow output
+ */
+export function runBathroomSafetyWorkflow(
+  input?: CustomerInput
+): WorkflowRunResult {
+  const customerInput = input ?? DEFAULT_INPUT;
+  const triage = runCustomerTriageAgent(customerInput);
+  const aiMeta = getLLMTriageAvailability();
+  return buildWorkflowResult(customerInput, triage, aiMeta);
+}
+
+// ---------------------------------------------------------------------------
+// Async workflow (for future LLM-assisted triage)
+// ---------------------------------------------------------------------------
+
+/**
+ * Runs the complete Bathroom Safety multi-agent workflow asynchronously.
+ *
+ * Uses runHybridCustomerTriageAgent() which checks for an optional LLM provider.
+ * All downstream agents (steps 2–6) remain deterministic.
+ *
+ * In the current prototype, this also returns deterministic output because
+ * no LLM provider integration has been implemented yet.
+ *
+ * @param input - Optional customer input; falls back to the canonical demo scenario
+ * @returns Promise<WorkflowRunResult>
+ */
+export async function runBathroomSafetyWorkflowAsync(
+  input?: CustomerInput
+): Promise<WorkflowRunResult> {
+  const customerInput = input ?? DEFAULT_INPUT;
+  const hybridTriage = await runHybridCustomerTriageAgent(customerInput);
+  const { aiMeta, ...triage } = hybridTriage;
+  return buildWorkflowResult(customerInput, triage, aiMeta);
 }
