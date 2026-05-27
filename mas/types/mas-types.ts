@@ -255,6 +255,12 @@ export interface AIExecutionMetadata {
   aiProvider?: string;
   /** Model identifier used for the LLM call. Present when a provider was attempted. */
   aiModel?: string;
+  /** Whether LLM output was normalized into canonical workflow values. */
+  normalizationApplied?: boolean;
+  /** Human-readable notes describing normalization decisions. */
+  normalizationNotes?: string[];
+  /** Raw validated LLM candidate kept for developer auditability. */
+  rawLLMCandidate?: LLMTriageCandidate;
 }
 
 /**

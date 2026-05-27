@@ -87,32 +87,105 @@ export function runCustomerTriageAgent(input: CustomerInput): TriageOutput {
 function normalizeLLMCandidate(
   candidate: LLMTriageCandidate,
   fallback: TriageOutput
-): TriageOutput {
+): { triage: TriageOutput; normalizationApplied: boolean; normalizationNotes: string[] } {
+  const notes: string[] = [];
+  const clean = (value: string | undefined): string => value?.trim() ?? "";
+  const normalizeText = (value: string): string => value.trim().toLowerCase();
+  const hasAny = (value: string, terms: string[]): boolean =>
+    terms.some((term) => normalizeText(value).includes(term));
+
+  const rawProblemCategory = clean(candidate.problemCategory);
+  let problemCategory = rawProblemCategory || fallback.problemCategory;
+  if (
+    !rawProblemCategory ||
+    hasAny(rawProblemCategory, [
+      "keamanan kamar mandi",
+      "risiko jatuh",
+      "kamar mandi tidak aman",
+      "keselamatan kamar mandi",
+      "bahaya terpeleset",
+      "terpeleset",
+      "jatuh di kamar mandi",
+    ])
+  ) {
+    problemCategory = "Kamar mandi licin";
+  }
+  if (problemCategory !== rawProblemCategory) {
+    notes.push(`problemCategory normalized from "${rawProblemCategory || "(missing)"}" to "${problemCategory}".`);
+  }
+
+  const rawPrimarySpace = clean(candidate.primarySpace);
+  let primarySpace = rawPrimarySpace || fallback.primarySpace;
+  if (
+    !rawPrimarySpace ||
+    hasAny(rawPrimarySpace, ["toilet", "bathroom", "area mandi", "kamar mandi"])
+  ) {
+    primarySpace = "Kamar mandi";
+  }
+  if (primarySpace !== rawPrimarySpace) {
+    notes.push(`primarySpace normalized from "${rawPrimarySpace || "(missing)"}" to "${primarySpace}".`);
+  }
+
+  const rawPrimaryUser = clean(candidate.primaryUser);
+  let primaryUser = rawPrimaryUser || fallback.primaryUser;
+  if (
+    !rawPrimaryUser ||
+    hasAny(rawPrimaryUser, ["ibu lansia", "orang tua", "elderly", "senior", "lansia"])
+  ) {
+    primaryUser = "Lansia";
+  }
+  if (primaryUser !== rawPrimaryUser) {
+    notes.push(`primaryUser normalized from "${rawPrimaryUser || "(missing)"}" to "${primaryUser}".`);
+  }
+
+  const rawConstraints =
+    Array.isArray(candidate.constraints) && candidate.constraints.length > 0
+      ? candidate.constraints.map((constraint) => constraint.trim()).filter(Boolean)
+      : [];
+  const constraints = [...rawConstraints];
+  const hasBudgetConstraint = constraints.some((constraint) =>
+    hasAny(constraint, ["hemat", "budget terbatas", "biaya terbatas", "prioritas biaya"])
+  );
+  if (hasBudgetConstraint || rawConstraints.length === 0) {
+    for (const canonicalConstraint of [
+      "budget terbatas",
+      "mulai dari barang paling penting",
+      "mudah dipahami staf",
+    ]) {
+      if (!constraints.some((constraint) => normalizeText(constraint) === canonicalConstraint)) {
+        constraints.push(canonicalConstraint);
+      }
+    }
+  }
+  if (constraints.length !== rawConstraints.length) {
+    notes.push("constraints normalized to include canonical budget and staff-readability constraints.");
+  }
+
+  const rawNormalizedNeed = clean(candidate.normalizedNeed);
+  const needLooksSafeAndSpecific =
+    rawNormalizedNeed.length >= 24 &&
+    hasAny(rawNormalizedNeed, ["kamar mandi", "toilet", "bathroom", "mandi"]) &&
+    hasAny(rawNormalizedNeed, ["lansia", "orang tua", "elderly", "senior"]);
+  const normalizedNeed = needLooksSafeAndSpecific
+    ? rawNormalizedNeed
+    : fallback.normalizedNeed;
+  if (normalizedNeed !== rawNormalizedNeed) {
+    notes.push(`normalizedNeed aligned to canonical demo need from "${rawNormalizedNeed || "(missing)"}".`);
+  }
+
+  const rawReasoning = clean(candidate.reasoning);
+
   return {
-    problemCategory:
-      typeof candidate.problemCategory === "string" && candidate.problemCategory.length > 0
-        ? candidate.problemCategory
-        : fallback.problemCategory,
-    primarySpace:
-      typeof candidate.primarySpace === "string" && candidate.primarySpace.length > 0
-        ? candidate.primarySpace
-        : fallback.primarySpace,
-    primaryUser:
-      typeof candidate.primaryUser === "string" && candidate.primaryUser.length > 0
-        ? candidate.primaryUser
-        : fallback.primaryUser,
-    constraints:
-      Array.isArray(candidate.constraints) && candidate.constraints.length > 0
-        ? candidate.constraints
-        : fallback.constraints,
-    normalizedNeed:
-      typeof candidate.normalizedNeed === "string" && candidate.normalizedNeed.length > 0
-        ? candidate.normalizedNeed
-        : fallback.normalizedNeed,
-    reasoning:
-      typeof candidate.reasoning === "string" && candidate.reasoning.length > 0
-        ? candidate.reasoning
-        : fallback.reasoning,
+    triage: {
+      problemCategory,
+      primarySpace,
+      primaryUser,
+      constraints,
+      normalizedNeed,
+      reasoning: rawReasoning || fallback.reasoning,
+    },
+    normalizationApplied: notes.length > 0,
+    normalizationNotes: notes,
   };
 }
 
@@ -146,16 +219,25 @@ export async function runHybridCustomerTriageAgent(
 
   if (candidate !== null) {
     // LLM succeeded — normalize candidate, fall back field-by-field for safety
-    const triage = normalizeLLMCandidate(candidate, deterministicTriage);
+    const { triage, normalizationApplied, normalizationNotes } =
+      normalizeLLMCandidate(candidate, deterministicTriage);
     return {
       ...triage,
-      aiMeta,
+      aiMeta: {
+        ...aiMeta,
+        normalizationApplied,
+        normalizationNotes,
+        rawLLMCandidate: candidate,
+      },
     };
   }
 
   // LLM unavailable or failed — use deterministic triage
   return {
     ...deterministicTriage,
-    aiMeta,
+    aiMeta: {
+      ...aiMeta,
+      normalizationApplied: false,
+    },
   };
 }

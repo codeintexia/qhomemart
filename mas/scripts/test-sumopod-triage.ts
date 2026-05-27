@@ -22,7 +22,7 @@
  *   aiMode: "llm-assisted"
  *   aiAvailable: true
  *   aiProvider: "sumopod"
- *   problemCategory, primarySpace, primaryUser, ... (from LLM)
+ *   raw LLM candidate, normalization metadata, and normalized triage output
  *
  * Expected output when env vars are missing:
  *   aiMode: "deterministic-fallback"
@@ -87,8 +87,24 @@ async function main() {
   if (result.aiMeta.aiReason) {
     console.log(`  aiReason    : ${result.aiMeta.aiReason}`);
   }
+  console.log(
+    `  normalizationApplied : ${result.aiMeta.normalizationApplied ?? false}`
+  );
+  if (result.aiMeta.normalizationNotes?.length) {
+    console.log("  normalizationNotes   :");
+    for (const note of result.aiMeta.normalizationNotes) {
+      console.log(`    - ${note}`);
+    }
+  }
 
-  console.log("\n--- Triage Output ---");
+  console.log("\n--- Raw LLM Candidate ---");
+  if (result.aiMeta.rawLLMCandidate) {
+    console.log(JSON.stringify(result.aiMeta.rawLLMCandidate, null, 2));
+  } else {
+    console.log("  [not available — deterministic fallback or LLM unavailable]");
+  }
+
+  console.log("\n--- Normalized Triage Output ---");
   console.log(`  problemCategory : ${result.problemCategory}`);
   console.log(`  primarySpace    : ${result.primarySpace}`);
   console.log(`  primaryUser     : ${result.primaryUser}`);

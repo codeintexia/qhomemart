@@ -54,6 +54,8 @@ runBathroomSafetyWorkflowAsync()
 > **Note:** The public demo UI uses `runBathroomSafetyWorkflow()` (synchronous,
 > deterministic). The LLM-enabled path runs through `runBathroomSafetyWorkflowAsync()`,
 > which is designed for use in a server action, API route, or async runtime.
+> LLM output is normalized into canonical workflow states so downstream product
+> matching, service matching, logs, and analytics remain stable and auditable.
 
 ---
 
