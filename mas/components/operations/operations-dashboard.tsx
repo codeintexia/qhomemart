@@ -89,11 +89,11 @@ export function OperationsDashboard({ workflow }: { workflow: WorkflowRunResult 
             </header>
 
             <div className={activeSection === "home" ? "block" : "hidden"}>
-              <CommandOverview workflow={workflow} />
+              <CommandOverview />
             </div>
 
             <div className={activeSection === "customers" ? "block" : "hidden"}>
-              <CustomersSection workflow={workflow} />
+              <CustomersSection />
             </div>
 
             <div className={activeSection === "journeys" ? "block" : "hidden"}>
@@ -101,19 +101,19 @@ export function OperationsDashboard({ workflow }: { workflow: WorkflowRunResult 
             </div>
 
             <div className={activeSection === "products-bundles" ? "block" : "hidden"}>
-              <ProductsBundlesSection workflow={workflow} />
+              <ProductsBundlesSection />
             </div>
 
             <div className={activeSection === "services" ? "block" : "hidden"}>
-              <ServicesSection workflow={workflow} />
+              <ServicesSection />
             </div>
 
             <div className={activeSection === "insights" ? "block" : "hidden"}>
-              <InsightsSection workflow={workflow} />
+              <InsightsSection />
             </div>
 
             <div className={activeSection === "operations" ? "block" : "hidden"}>
-              <RetailOperationsSection workflow={workflow} />
+              <RetailOperationsSection />
             </div>
 
             <div className={activeSection === "ai-layer" ? "space-y-6" : "hidden"}>

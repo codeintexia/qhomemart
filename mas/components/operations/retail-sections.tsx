@@ -1,197 +1,153 @@
-import { ArrowRight, Bot, CheckCircle2, ClipboardCheck, FileText, KeyRound, Layers3, PackageCheck, Settings, ShieldCheck, ShoppingBag, Users, Wrench } from "lucide-react";
+import { ArrowRight, Settings } from "lucide-react";
 import type { WorkflowRunResult } from "@/types/mas-types";
-import {
-  aggregateJourneyStages,
-  bundleCandidates,
-  businessOpportunities,
-  customerIntentClusters,
-  inquiryPatterns,
-  operationalAlerts,
-  problemClusters,
-  recommendedDecisions,
-  serviceSignals,
-} from "./operations-data";
 
-export function CustomersSection({ workflow }: { workflow: WorkflowRunResult }) {
+const customerRows = [
+  ["INQ-001", "Kamar mandi licin untuk lansia", "Keamanan kamar mandi", "Caregiver household", "Hemat dulu", "Tinggi", "Selesai"],
+  ["INQ-002", "Pipa bocor di bawah wastafel", "Kebocoran air", "Repair shopper", "Sedang", "Tinggi", "Perlu follow-up"],
+  ["INQ-003", "Bingung memilih cat kamar anak", "Pemilihan cat", "Family planner", "Sedang", "Sedang", "Dalam intake"],
+  ["INQ-004", "Pompa air lemah dan sering mati", "Pompa & plumbing", "Home maintenance", "Hemat dulu", "Sedang", "Butuh layanan"],
+  ["INQ-005", "Ingin renovasi dapur kecil", "Renovasi dapur", "Project planner", "Lengkap", "Sedang", "Perlu konsultasi"],
+  ["INQ-006", "Lampu rumah kurang terang", "Pencahayaan rumah", "Energy saver", "Hemat dulu", "Rendah", "Rekomendasi siap"],
+];
+
+const journeyRows = [
+  ["Input masalah", "128", "Rendah", "Masalah pelanggan terkumpul", "Masuk dari guided intake"],
+  ["Intake terpandu", "34", "Sedang", "Konteks dan preferensi", "Beberapa sesi butuh staf"],
+  ["Triage AI", "32", "Rendah", "Kategori masalah", "Customer Triage dapat LLM-assisted saat configured"],
+  ["Normalisasi", "32", "Rendah", "Canonical state", "Membuat matching stabil"],
+  ["Paket solusi", "18", "Sedang", "Bundle kandidat", "Perlu review category"],
+  ["Staff handoff", "11", "Sedang", "Ringkasan staf", "Terkait layanan"],
+  ["Insight bisnis", "8", "Rendah", "Keputusan prioritas", "Siap dibahas manajemen"],
+];
+
+const bundleRows = [
+  ["Paket Kamar Mandi Aman", "Safety", "Kamar mandi licin", "Anti-slip mat, grab bar", "Lampu terang, rak rendah", "Instalasi pegangan", "Prioritas"],
+  ["Paket Anti Bocor", "Plumbing", "Kebocoran air", "Sealant, fitting pipa", "Kunci pipa, tape", "Repair follow-up", "Perlu layanan"],
+  ["Paket Cat Ruangan", "Paint", "Pemilihan cat", "Cat interior", "Primer, roller, kuas", "Konsultasi warna", "Siap campaign"],
+  ["Paket Pompa & Plumbing", "Pump", "Pompa air lemah", "Pompa air", "Pipa, valve, fitting", "Survey ringan", "Perlu review"],
+  ["Paket Dapur Praktis", "Kitchen", "Renovasi dapur", "Sink, storage", "Lighting, organizer", "Konsultasi project", "Dalam pengembangan"],
+  ["Paket Pencahayaan Hemat Energi", "Lighting", "Rumah kurang terang", "LED bulb, fixture", "Sensor, extension", "Instalasi opsional", "Siap"],
+];
+
+const serviceRows = [
+  ["Instalasi pegangan kamar mandi", "Keamanan kamar mandi", "11", "Staff follow-up", "Hubungi pelanggan", "Prioritas"],
+  ["Repair kebocoran ringan", "Kebocoran air", "9", "Review teknis", "Validasi kebutuhan", "Pantau"],
+  ["Konsultasi cat", "Pemilihan cat", "7", "Staff toko", "Bantu pilih warna", "Siap"],
+  ["Survey pompa air", "Pompa & plumbing", "6", "Staff teknis", "Cek kapasitas layanan", "Perlu review"],
+  ["Konsultasi dapur", "Renovasi dapur", "5", "Project staff", "Jadwalkan diskusi", "Dalam pengembangan"],
+  ["Instalasi lighting", "Pencahayaan rumah", "4", "Staff follow-up", "Tawarkan opsi", "Siap"],
+];
+
+const insightRows = [
+  ["Safety bundle kuat", "32 input safety", "Peluang campaign dan basket safety", "Prioritaskan Paket Kamar Mandi Aman", "P1", "Siap"],
+  ["Plumbing berulang", "24 input leakage/plumbing", "Butuh mapping produk dan layanan", "Perkaya knowledge mapping plumbing", "P2", "Dalam pengembangan"],
+  ["Paint butuh konsultasi", "21 input cat", "Mendorong assisted selling", "Buat alur konsultasi cat", "P2", "Siap dibuat"],
+  ["Layanan meningkat", "11 follow-up layanan", "Risiko antrean operasional", "Review kapasitas staf layanan", "P1", "Pantau"],
+  ["Staff script dibutuhkan", "Cluster minat tinggi", "Kualitas respons lebih konsisten", "Siapkan skrip toko", "P2", "Siap dibuat"],
+];
+
+const operationRows = [
+  ["Workflow health", "Operational", "Rendah", "Pertahankan deterministic workflow", "Sehat"],
+  ["Service follow-up", "Antrean naik", "Sedang", "Review kapasitas layanan", "Pantau"],
+  ["Staff readiness", "Ringkasan siap", "Rendah", "Gunakan skrip assisted selling", "Siap"],
+  ["Knowledge mapping", "Perlu update", "Sedang", "Update plumbing dan cat", "Dalam pengembangan"],
+  ["Fallback readiness", "Aktif", "Rendah", "Pertahankan governance", "Sehat"],
+];
+
+export function CustomersSection() {
   return (
-    <RetailSection eyebrow="Pelanggan" title="Pola kebutuhan, pertanyaan, dan segmen pelanggan" description="Sinyal pelanggan dari kebutuhan safety, perbaikan, cat, plumbing, renovasi, dan lighting.">
-      <div className="grid gap-4 lg:grid-cols-4">
-        {customerIntentClusters.map((cluster) => (
-          <MetricCard key={cluster.label} label={cluster.label} value={cluster.value} detail={`${cluster.detail} Urgency: ${cluster.status}.`} />
-        ))}
-      </div>
-      <div className="grid gap-3 lg:grid-cols-4">
-        {inquiryPatterns.map((pattern) => (
-          <Panel key={`${pattern.label}-${pattern.value}`} icon={Users} title={pattern.value} text={pattern.detail} />
-        ))}
-      </div>
-      <MetricCard label="Contoh kasus terpilih" value="Kamar mandi licin untuk lansia" detail={workflow.scenario.userStory} />
+    <RetailSection eyebrow="Pelanggan" title="Tabel Input Pelanggan" description="Daftar ringkas input pelanggan dari beberapa klaster kebutuhan.">
+      <DataTable headers={["ID", "Ringkasan Input", "Klaster Masalah", "Segmen", "Budget Signal", "Urgensi", "Status Workflow"]} rows={customerRows} />
     </RetailSection>
   );
 }
 
 export function JourneysSection({ workflow }: { workflow: WorkflowRunResult }) {
-  const steps = [
-    ["Masalah pelanggan", "Kamar mandi licin untuk lansia", Users],
-    ["Guided intake", "Cerita, kondisi, dan preferensi belanja dicatat", ClipboardCheck],
-    ["LLM triage", "Configurable provider path available when configured", Bot],
-    ["Semantic normalization", "Bahasa pelanggan diubah menjadi state yang stabil", Layers3],
-    ["Paket produk", workflow.bundle.bundleTitle, PackageCheck],
-    ["Handoff staf", "Ringkasan siap untuk assisted selling", FileText],
-    ["Insight bisnis", workflow.businessInsight.bundleOpportunity, ShoppingBag],
-  ] as const;
-
+  const stages = ["Input masalah", "Intake terpandu", "Triage AI", "Normalisasi", "Paket solusi", "Staff handoff", "Insight bisnis"];
   return (
-    <RetailSection eyebrow="Alur Pelanggan" title="Alur umum dan contoh kasus terpilih" description="Alur ini berlaku untuk banyak input pelanggan. Bathroom safety hanya ditampilkan sebagai satu contoh kasus terpilih.">
+    <RetailSection eyebrow="Alur Pelanggan" title="Funnel Journey dan Status Workflow" description="Funnel agregat dari banyak input pelanggan. Bathroom safety hanya satu contoh kasus terpilih.">
       <div className="rounded-lg border border-white/10 bg-white/[0.055] p-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Alur umum dari masalah ke basket</p>
-        <div className="mt-5 grid gap-3 xl:grid-cols-7">
-          {aggregateJourneyStages.map((stage, index) => (
-            <div key={stage.label} className="relative">
-              <div className="h-full rounded-lg border border-white/10 bg-slate-950/35 p-4">
-                <p className="text-sm font-semibold text-white">{stage.label}</p>
-                <p className="mt-2 text-xs leading-5 text-slate-400">{stage.detail}</p>
+        <div className="flex min-w-[920px] items-center overflow-x-auto pb-2">
+          {stages.map((stage, index) => (
+            <div key={stage} className="flex flex-1 items-center">
+              <div className="min-h-20 w-full rounded-lg border border-white/10 bg-slate-950/35 p-4">
+                <p className="text-xs font-semibold text-slate-500">Stage {index + 1}</p>
+                <p className="mt-2 text-sm font-semibold text-white">{stage}</p>
               </div>
-              {index < aggregateJourneyStages.length - 1 && <ArrowRight className="absolute -right-2 top-1/2 hidden h-4 w-4 -translate-y-1/2 text-slate-500 xl:block" aria-hidden="true" />}
+              {index < stages.length - 1 && <ArrowRight className="mx-2 h-4 w-4 shrink-0 text-red-200/70" aria-hidden="true" />}
             </div>
           ))}
         </div>
       </div>
+      <DataTable title="Tabel Status Journey" headers={["Stage", "Jumlah Sesi", "Drop-off / Risiko", "Output", "Catatan"]} rows={journeyRows} />
       <div className="rounded-lg border border-white/10 bg-white/[0.055] p-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Contoh kasus terpilih: kamar mandi licin untuk lansia</p>
-        <div className="grid gap-3 xl:grid-cols-7">
-          {steps.map(([label, text, Icon], index) => (
-            <div key={label} className="relative">
-              <div className="h-full rounded-lg border border-white/10 bg-slate-950/35 p-4">
-                <Icon className="h-5 w-5 text-red-200" aria-hidden="true" />
-                <p className="mt-4 text-sm font-semibold text-white">{label}</p>
-                <p className="mt-2 text-xs leading-5 text-slate-400">{text}</p>
-              </div>
-              {index < steps.length - 1 && <ArrowRight className="absolute -right-2 top-1/2 hidden h-4 w-4 -translate-y-1/2 text-slate-500 xl:block" aria-hidden="true" />}
-            </div>
-          ))}
-        </div>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Contoh kasus terpilih</p>
+        <p className="mt-2 text-lg font-semibold text-white">Kamar mandi licin untuk lansia</p>
+        <p className="mt-2 text-sm leading-6 text-slate-400">{workflow.scenario.userStory}</p>
       </div>
     </RetailSection>
   );
 }
 
-export function ProductsBundlesSection({ workflow }: { workflow: WorkflowRunResult }) {
-  const products = [...workflow.products.sectionA, ...workflow.products.sectionB].slice(0, 4);
+export function ProductsBundlesSection() {
   return (
-    <RetailSection eyebrow="Produk & Paket" title="Kandidat paket dan peluang kategori" description="Paket menghubungkan masalah pelanggan, produk, cross-sell, layanan, dan placeholder sinyal stok.">
-      <div className="grid gap-4 lg:grid-cols-4">
-        {bundleCandidates.map((bundle) => (
-          <MetricCard key={bundle.label} label={bundle.label} value={bundle.value} detail={bundle.detail} />
-        ))}
-      </div>
-      <div className="grid gap-4 lg:grid-cols-3">
-        <MetricCard label="Sinyal stok" value="Dalam pengembangan" detail="Sistem stok dan harga belum terhubung." />
-        <MetricCard label="Peluang kategori" value={problemClusters.map((cluster) => cluster.label).join(", ")} detail="Pola masalah membantu planning kategori dan campaign." />
-        <MetricCard label="Paket contoh kasus terpilih" value={workflow.bundle.bundleTitle} detail={workflow.bundle.bundleSubtitle} />
-      </div>
-      <p className="text-sm font-semibold text-white">Koneksi produk untuk contoh kasus terpilih</p>
-      <div className="grid gap-3 lg:grid-cols-4">
-        {products.map(({ product }) => (
-          <Panel key={product.id} icon={PackageCheck} title={product.name} text={product.reason} />
-        ))}
-      </div>
+    <RetailSection eyebrow="Produk & Paket" title="Tabel Peluang Paket" description="Dashboard kategori untuk melihat kandidat paket, cross-sell, dan linkage layanan.">
+      <DataTable headers={["Paket", "Kategori Produk", "Masalah Pelanggan", "Produk Utama", "Produk Pendukung", "Layanan Terkait", "Status"]} rows={bundleRows} />
     </RetailSection>
   );
 }
 
-export function ServicesSection({ workflow }: { workflow: WorkflowRunResult }) {
+export function ServicesSection() {
   return (
-    <RetailSection eyebrow="Layanan" title="Arahan layanan, kapasitas, dan kesiapan follow-up" description="Sinyal layanan dikelompokkan untuk manajer operasional sebelum kapasitas layanan terhubung.">
-      <div className="grid gap-4 lg:grid-cols-4">
-        {serviceSignals.map((signal) => (
-          <MetricCard key={signal.label} label={signal.label} value={signal.value} detail={signal.detail} />
-        ))}
-      </div>
-      <div className="grid gap-4 lg:grid-cols-3">
-        <MetricCard label="Indikator kapasitas layanan" value="Mode pratinjau" detail="Integrasi antrean kapasitas masih dalam pengembangan." />
-        <MetricCard label="Kesiapan follow-up staf" value="Siap untuk contoh kasus" detail={workflow.services.availabilityNote} />
-        <MetricCard label="Sinyal project request" value="Meningkat" detail="Kitchen, plumbing, dan instalasi menunjukkan kebutuhan assisted planning." />
-      </div>
-      <div className="grid gap-3 lg:grid-cols-2">
-        {workflow.services.sectionC.map(({ service, matchReason }) => (
-          <Panel key={service.id} icon={Wrench} title={service.name} text={`${matchReason} ${service.safeAvailabilityNote}`} />
-        ))}
-      </div>
+    <RetailSection eyebrow="Layanan" title="Tabel Permintaan Layanan" description="Sinyal layanan dari kebutuhan instalasi, repair, konsultasi, dan project request.">
+      <DataTable headers={["Layanan", "Sumber Masalah", "Jumlah Sinyal", "Kebutuhan Staff", "Follow-up", "Status"]} rows={serviceRows} />
     </RetailSection>
   );
 }
 
-export function InsightsSection({ workflow }: { workflow: WorkflowRunResult }) {
+export function InsightsSection() {
   return (
-    <RetailSection eyebrow="Insight Bisnis" title="Peluang bisnis, pain cluster, dan aksi berikutnya" description="Decision support untuk manajemen, operasional, category, marketing, dan training staf.">
-      <div className="grid gap-4 lg:grid-cols-4">
-        {businessOpportunities.map((item) => (
-          <MetricCard key={item.label} label={item.label} value={item.value} detail={item.detail} />
-        ))}
-      </div>
-      <div className="grid gap-4 lg:grid-cols-3">
-        <MetricCard label="Sinyal marketing" value="Caregiver, repair, renovation, dan paint-planning households" detail="Sinyal segmen membantu targeting campaign." />
-        <MetricCard label="Strategi kategori" value="Bundle-led selling" detail="Gunakan pola masalah untuk menyusun cross-sell dan layanan." />
-        <MetricCard label="Sinyal training staf" value="Butuh skrip terpandu" detail="Tim toko perlu skrip singkat untuk cluster minat tinggi." />
-      </div>
-      <div className="grid gap-4 lg:grid-cols-4">
-        {recommendedDecisions.map((decision) => (
-          <MetricCard key={decision.label} label={decision.label} value={decision.value} detail={decision.detail} />
-        ))}
-      </div>
-      <div className="rounded-lg border border-emerald-300/20 bg-emerald-400/10 p-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-200">Aksi yang disarankan</p>
-        <p className="mt-3 text-2xl font-semibold leading-snug text-white">Jalankan guided selling berbasis paket untuk safety dan repair, lalu perluas knowledge mapping untuk cat dan plumbing.</p>
-      </div>
+    <RetailSection eyebrow="Insight Bisnis" title="Tabel Insight & Keputusan" description="Decision support untuk manajemen, operasional, category, marketing, dan training staf.">
+      <DataTable headers={["Insight", "Bukti Data", "Dampak Bisnis", "Rekomendasi", "Prioritas", "Status"]} rows={insightRows} />
     </RetailSection>
   );
 }
 
-export function RetailOperationsSection({ workflow }: { workflow: WorkflowRunResult }) {
+export function RetailOperationsSection() {
   return (
-    <RetailSection eyebrow="Operasional" title="Kesehatan Workflow, alert, antrean, dan kesiapan staf" description="Tampilan operasional untuk pola pelanggan, follow-up staf, dan pertanyaan yang belum selesai.">
-      <div className="grid gap-4 lg:grid-cols-4">
-        <MetricCard label="Kesehatan Workflow" value="Operational" detail={`${workflow.metrics.agentStepsLogged} langkah Workflow selesai.`} />
-        <MetricCard label="Pertanyaan belum selesai" value="Mode pratinjau" detail="Antrean pertanyaan terhubung belum tersedia." />
-        <MetricCard label="Bottleneck operasional" value="Follow-up layanan" detail="Sinyal instalasi dan repair perlu review kapasitas." />
-        <MetricCard label="Kesiapan staf" value="Ringkasan siap" detail={workflow.staffSummary} />
-      </div>
-      <div className="grid gap-4 lg:grid-cols-4">
-        {operationalAlerts.map((alert) => (
-          <MetricCard key={alert.label} label={alert.label} value={alert.value} detail={alert.detail} />
-        ))}
-      </div>
+    <RetailSection eyebrow="Operasional" title="Tabel Status Operasional" description="Status area operasional yang perlu dipantau oleh tim internal.">
+      <DataTable headers={["Area", "Kondisi", "Risiko", "Tindakan Disarankan", "Status"]} rows={operationRows} />
     </RetailSection>
   );
 }
 
 export function SettingsSection() {
-  const rows = [
-    ["API provider", "Sumopod", "Configured workflow provider shell"],
-    ["Model", "Gemini 2.0 Flash", "Selected model for structured triage"],
-    ["API key status", "Dalam pengembangan", "UI shell untuk secret management"],
-    ["Routing policy", "Routing preview", "Pratinjau lokal aturan pemilihan Model"],
-    ["Fallback policy", "Fallback deterministik aktif", "Kebijakan kontinuitas cakupan saat ini"],
-    ["Knowledge mapping", "Dalam pengembangan", "Shell mapping katalog dan layanan"],
-    ["Notification rules", "Dalam pengembangan", "Shell alert staf dan follow-up"],
-    ["Access control", "Dalam pengembangan", "Shell role dan permission internal"],
+  const sections = [
+    ["Provider & API", [["API Provider", "Configurable"], ["Current provider", "Sumopod"], ["API Key", "configured / hidden"]]],
+    ["Model selection", [["Active model", "Gemini 2.0 Flash"], ["Model selection", "configurable"]]],
+    ["Routing policy", [["Routing policy", "local preview"], ["Live multi-model execution", "under construction"]]],
+    ["Fallback policy", [["Fallback policy", "enabled"], ["Deterministic fallback", "active"]]],
+    ["Knowledge mapping", [["Catalog mapping", "under construction"], ["Service mapping", "under construction"]]],
+    ["Notification rules", [["Staff alert", "under construction"], ["Follow-up notification", "under construction"]]],
+    ["Access control", [["Role management", "under construction"], ["Permission model", "under construction"]]],
   ];
 
   return (
-    <RetailSection eyebrow="Pengaturan" title="Area pengaturan admin" description="Konfigurasi provider, Model, routing, Fallback, dan knowledge mapping. Kontrol bersifat lokal.">
-      <div className="grid gap-4 lg:grid-cols-2">
-        {rows.map(([label, value, detail]) => (
-          <div key={label} className="rounded-lg border border-white/10 bg-white/[0.055] p-5">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/10">
-                {label.includes("key") ? <KeyRound className="h-5 w-5 text-red-200" aria-hidden="true" /> : <Settings className="h-5 w-5 text-red-200" aria-hidden="true" />}
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{label}</p>
-                <p className="mt-2 text-lg font-semibold text-white">{value}</p>
-                <p className="mt-1 text-sm leading-6 text-slate-400">{detail}</p>
-              </div>
+    <RetailSection eyebrow="Pengaturan" title="Area Pengaturan Admin" description="Form shell internal. Tidak menyimpan data dan tidak menampilkan API key asli.">
+      <div className="grid gap-4 xl:grid-cols-2">
+        {sections.map(([title, rows]) => (
+          <div key={title as string} className="rounded-lg border border-white/10 bg-white/[0.055] p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <Settings className="h-4 w-4 text-red-200" aria-hidden="true" />
+              <h3 className="text-base font-semibold text-white">{title as string}</h3>
+            </div>
+            <div className="space-y-3">
+              {(rows as string[][]).map(([label, value]) => (
+                <label key={label} className="grid gap-2 md:grid-cols-[180px_1fr] md:items-center">
+                  <span className="text-sm text-slate-400">{label}</span>
+                  <input disabled value={value} className="rounded-lg border border-white/10 bg-slate-950/45 px-3 py-2 text-sm text-slate-200 disabled:opacity-100" readOnly />
+                </label>
+              ))}
             </div>
           </div>
         ))}
@@ -213,27 +169,32 @@ function RetailSection({ eyebrow, title, description, children }: { eyebrow: str
   );
 }
 
-function MetricCard({ label, value, detail }: { label: string; value: string; detail: string }) {
+function DataTable({ title, headers, rows }: { title?: string; headers: string[]; rows: string[][] }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.055] p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{label}</p>
-          <p className="mt-2 text-lg font-semibold leading-6 text-white">{value}</p>
-          <p className="mt-2 text-sm leading-6 text-slate-400">{detail}</p>
+    <div className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.055]">
+      {title && (
+        <div className="border-b border-white/10 px-5 py-4">
+          <h3 className="text-lg font-semibold text-white">{title}</h3>
         </div>
-        <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-200" aria-hidden="true" />
+      )}
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[1040px] border-collapse text-left text-sm">
+          <thead className="bg-slate-950/65 text-xs uppercase tracking-[0.14em] text-slate-500">
+            <tr>{headers.map((header) => <th key={header} className="px-4 py-4">{header}</th>)}</tr>
+          </thead>
+          <tbody className="divide-y divide-white/10">
+            {rows.map((row) => (
+              <tr key={row.join("-")} className="transition hover:bg-white/[0.045]">
+                {row.map((cell, index) => (
+                  <td key={`${cell}-${index}`} className={`px-4 py-4 leading-6 ${index === 0 ? "font-semibold text-white" : "text-slate-300"}`}>
+                    {cell}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-    </div>
-  );
-}
-
-function Panel({ icon: Icon, title, text }: { icon: React.ElementType; title: string; text: string }) {
-  return (
-    <div className="rounded-lg border border-white/10 bg-slate-950/35 p-4">
-      <Icon className="h-5 w-5 text-red-200" aria-hidden="true" />
-      <p className="mt-4 text-sm font-semibold text-white">{title}</p>
-      <p className="mt-2 text-sm leading-6 text-slate-400">{text}</p>
     </div>
   );
 }

@@ -34,7 +34,7 @@ export function LogsAudit({ workflow }: { workflow: WorkflowRunResult }) {
 
       <div className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.055]">
         <div className="border-b border-white/10 px-5 py-4">
-          <p className="text-sm font-semibold text-white">Tabel detail audit</p>
+          <p className="text-sm font-semibold text-white">Tabel Audit Workflow</p>
           <p className="mt-1 text-xs text-slate-500">Input, output, mode runtime, status Fallback, status sukses, dan bukti.</p>
         </div>
         <div className="overflow-x-auto">
@@ -43,11 +43,10 @@ export function LogsAudit({ workflow }: { workflow: WorkflowRunResult }) {
               <tr>
                 <th className="px-4 py-4">Step</th>
                 <th className="px-4 py-4">Agent</th>
-                <th className="px-4 py-4">Input summary</th>
-                <th className="px-4 py-4">Output summary</th>
-                <th className="px-4 py-4">Runtime mode</th>
+                <th className="px-4 py-4">Input</th>
+                <th className="px-4 py-4">Output</th>
+                <th className="px-4 py-4">Mode</th>
                 <th className="px-4 py-4">Fallback</th>
-                <th className="px-4 py-4">Success</th>
                 <th className="px-4 py-4">Evidence</th>
               </tr>
             </thead>
@@ -60,11 +59,6 @@ export function LogsAudit({ workflow }: { workflow: WorkflowRunResult }) {
                   <td className="max-w-[260px] px-4 py-4 leading-6 text-slate-300">{row.outputSummary}</td>
                   <td className="px-4 py-4 text-slate-300">{row.runtimeMode}</td>
                   <td className="px-4 py-4 text-slate-300">{row.fallbackStatus}</td>
-                  <td className="px-4 py-4">
-                    <span className="rounded-full border border-emerald-300/30 bg-emerald-400/10 px-2.5 py-1 text-xs font-semibold text-emerald-200">
-                      {row.successState}
-                    </span>
-                  </td>
                   <td className="px-4 py-4 text-slate-300">{row.evidenceGenerated}</td>
                 </tr>
               ))}
