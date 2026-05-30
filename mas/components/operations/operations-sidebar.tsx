@@ -1,19 +1,19 @@
 "use client";
 
-import { Activity, Archive, Bot, BrainCircuit, ClipboardList, Cpu, FileSearch, Gauge, GitBranch, Settings, ShieldCheck } from "lucide-react";
+import { Activity, BarChart3, Bot, BriefcaseBusiness, ClipboardList, FileSearch, Gauge, PackageCheck, Settings, ShoppingBag, Users, Wrench } from "lucide-react";
 import type { SectionId, SidebarItem } from "./operations-data";
 
 const iconMap: Record<SectionId, React.ElementType> = {
-  overview: Gauge,
-  "agent-fleet": Bot,
-  "workflow-monitor": GitBranch,
-  "model-routing": Cpu,
-  "fallback-governance": ShieldCheck,
-  "business-decision": BrainCircuit,
-  "logs-audit": FileSearch,
+  home: Gauge,
+  customers: Users,
+  journeys: ClipboardList,
+  "products-bundles": PackageCheck,
+  services: Wrench,
+  insights: BarChart3,
+  operations: BriefcaseBusiness,
+  "ai-layer": Bot,
+  audit: FileSearch,
   settings: Settings,
-  "human-review": ClipboardList,
-  "knowledge-base": Archive,
 };
 
 export function OperationsSidebar({
@@ -32,12 +32,12 @@ export function OperationsSidebar({
           <Activity className="h-5 w-5 text-red-200" aria-hidden="true" />
         </div>
         <div>
-          <p className="text-sm font-semibold tracking-wide text-white">MAS Command Center</p>
-          <p className="text-xs text-slate-400">AI operations dashboard</p>
+          <p className="text-sm font-semibold tracking-wide text-white">QHomemart Retail OS</p>
+          <p className="text-xs text-slate-400">Dashboard operasional dengan sistem AI</p>
         </div>
       </div>
 
-      <nav className="space-y-1" aria-label="Operations sections">
+      <nav className="space-y-1" aria-label="Menu dashboard">
         {items.map((item) => {
           const Icon = iconMap[item.id];
           const isActive = activeSection === item.id;
@@ -57,22 +57,18 @@ export function OperationsSidebar({
                 <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-red-600" : "text-slate-500 group-hover:text-slate-300"}`} aria-hidden="true" />
                 <span className="truncate">{item.label}</span>
               </span>
-              {item.comingSoon && (
-                <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
-                  isActive ? "bg-slate-950 text-white" : "bg-white/10 text-slate-400"
-                }`}>
-                  Soon
-                </span>
-              )}
             </button>
           );
         })}
       </nav>
 
       <div className="mt-8 rounded-lg border border-white/10 bg-white/[0.04] p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Prototype Scope</p>
+        <div className="flex items-center gap-2">
+          <ShoppingBag className="h-4 w-4 text-red-200" aria-hidden="true" />
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Cakupan Saat Ini</p>
+        </div>
         <p className="mt-2 text-sm leading-6 text-slate-300">
-          No live stock, pricing, auth, WhatsApp, payment, or production QHomemart systems are connected.
+          Stok live, harga, auth, WhatsApp, payment, dan sistem produksi belum terhubung.
         </p>
       </div>
     </aside>

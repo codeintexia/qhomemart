@@ -1,91 +1,128 @@
-import { CheckCircle2, CircleGauge, Cpu, GitBranch, Layers3, ShieldCheck, Sparkles, Workflow } from "lucide-react";
-import type { WorkflowRunResult } from "@/types/mas-types";
+import { AlertTriangle, Bot, BriefcaseBusiness, PackageCheck, UserRoundCheck, Users, Wrench } from "lucide-react";
 
-const statusCards = [
-  { label: "System health", value: "Operational", note: "Demo signal", icon: CheckCircle2 },
-  { label: "Runtime mode", value: "Hybrid-ready", note: "Prototype estimate", icon: CircleGauge },
-  { label: "LLM-assisted triage", value: "Supported", note: "Available when configured", icon: Sparkles },
-  { label: "Provider", value: "Sumopod", note: "OpenAI-compatible path", icon: Cpu },
-  { label: "Model", value: "Gemini 2.0 Flash", note: "Selected router option", icon: Layers3 },
-  { label: "Deterministic fallback", value: "Enabled", note: "Business continuity", icon: ShieldCheck },
-  { label: "Semantic normalization", value: "Active", note: "Canonical state mapping", icon: Workflow },
-  { label: "Workflow trace", value: "Active", note: "Six logged steps", icon: GitBranch },
+const kpis = [
+  ["Interaksi pelanggan", "128"],
+  ["Sesi rekomendasi aktif", "34"],
+  ["Peluang paket", "18"],
+  ["Permintaan layanan", "11"],
+  ["Alert operasional", "4"],
+  ["Kesehatan AI", "Operational"],
 ];
 
-export function CommandOverview({ workflow }: { workflow: WorkflowRunResult }) {
+const problemRows = [
+  ["1", "Keamanan kamar mandi", "32", "Tinggi", "Paket Kamar Mandi Aman", "Siapkan guided bundle"],
+  ["2", "Kebocoran air", "24", "Tinggi", "Paket Anti Bocor", "Review follow-up layanan"],
+  ["3", "Pemilihan cat", "21", "Sedang", "Paket Cat Ruangan", "Buat alur konsultasi warna"],
+  ["4", "Pompa & plumbing", "18", "Sedang", "Paket Pompa & Plumbing", "Mapping pertanyaan berulang"],
+  ["5", "Renovasi dapur", "17", "Sedang", "Paket Dapur Praktis", "Validasi cross-sell"],
+  ["6", "Pencahayaan rumah", "16", "Rendah", "Paket Pencahayaan Hemat Energi", "Siapkan rekomendasi fixture"],
+];
+
+const decisionRows = [
+  ["P1", "Campaign", "Cluster safety paling kuat", "Prioritaskan paket keamanan kamar mandi", "Marketing + Category", "Siap dibahas"],
+  ["P2", "Operasional", "Antrean layanan meningkat", "Review kapasitas instalasi dan repair", "Ops Manager", "Perlu review"],
+  ["P3", "Produk", "Banyak pertanyaan plumbing", "Perkaya knowledge mapping plumbing", "Category Manager", "Dalam pengembangan"],
+  ["P4", "Staf toko", "Butuh assisted selling", "Siapkan skrip penjualan berbantuan staf", "Store Lead", "Siap dibuat"],
+];
+
+const alertRows = [
+  ["High intent cluster detected", "Peluang campaign safety", "Sedang", "Prioritaskan bundle safety", "Aktif"],
+  ["Service follow-up queue rising", "Risiko antrean staf", "Tinggi", "Review kapasitas layanan", "Pantau"],
+  ["Knowledge mapping needs update", "Rekomendasi bisa kurang konsisten", "Sedang", "Update mapping plumbing dan cat", "Dalam pengembangan"],
+  ["Fallback policy healthy", "Workflow tetap berjalan", "Rendah", "Pertahankan governance", "Operational"],
+];
+
+export function CommandOverview() {
   return (
     <section className="space-y-6">
-      <div className="overflow-hidden rounded-lg border border-white/10 bg-[linear-gradient(135deg,#111827_0%,#0c1220_48%,#231014_100%)] shadow-2xl shadow-black/30">
-        <div className="grid gap-8 p-6 lg:grid-cols-[1.35fr_0.65fr] lg:p-8">
+      <div className="rounded-lg border border-white/10 bg-white/[0.055] p-5">
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-red-200">Panduan Membaca Dashboard</p>
+        <h2 className="mt-2 text-2xl font-semibold text-white">Mulai dari kebutuhan peran Anda</h2>
+        <div className="mt-5 grid gap-3 lg:grid-cols-4">
+          <PersonaCard title="Direktur / Manajemen" text="Lihat peluang bisnis dan keputusan prioritas." menu="Ringkasan, Insight Bisnis" />
+          <PersonaCard title="Manajer Operasional" text="Lihat alur kerja, antrean layanan, dan risiko operasional." menu="Operasional, Layanan" />
+          <PersonaCard title="Product / Category Manager" text="Lihat pola kebutuhan pelanggan dan peluang paket." menu="Pelanggan, Produk & Paket" />
+          <PersonaCard title="Reviewer Teknis" text="Lihat Agent, Model, Fallback, Workflow, dan Audit." menu="Sistem AI, Log & Audit" />
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-white/10 bg-[linear-gradient(135deg,#111827_0%,#0c1220_52%,#231014_100%)] p-6 shadow-2xl shadow-black/30">
+        <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
           <div>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-200">
-              <span className="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_16px_rgba(110,231,183,0.8)]" />
-              Operational command layer
-            </div>
-            <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-white xl:text-5xl">
-              MAS is a hybrid AI orchestration system, not a chatbot.
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-red-200">Ringkasan Retail OS</p>
+            <h1 className="mt-2 text-4xl font-semibold tracking-tight text-white xl:text-5xl">
+              Dashboard internal untuk membaca kebutuhan pelanggan dan keputusan bisnis berikutnya.
             </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300">
-              The bathroom-safety workflow demonstrates LLM-assisted triage readiness, deterministic fallback, semantic normalization,
-              six-agent coordination, and stakeholder-ready business output.
+            <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300">
+              AI digunakan untuk memahami bahasa pelanggan. Workflow deterministik menjaga hasil tetap stabil dan dapat diaudit.
             </p>
           </div>
-
-          <div className="rounded-lg border border-white/10 bg-white/[0.06] p-5 backdrop-blur">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Current Workflow Output</p>
-            <div className="mt-5 space-y-4">
-              <div>
-                <p className="text-sm text-slate-400">Active agents</p>
-                <p className="text-3xl font-semibold text-white">6</p>
-              </div>
-              <div>
-                <p className="text-sm text-slate-400">Business output</p>
-                <p className="text-lg font-semibold text-emerald-200">{workflow.metrics.businessInsightGenerated ? "Generated" : "Pending"}</p>
-              </div>
-              <div>
-                <p className="text-sm text-slate-400">Scenario</p>
-                <p className="text-sm leading-6 text-slate-200">{workflow.scenario.title}</p>
-              </div>
-            </div>
+          <div className="rounded-lg border border-white/10 bg-white/[0.06] p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Keputusan prioritas</p>
+            <p className="mt-3 text-xl font-semibold leading-7 text-white">
+              Prioritaskan paket keamanan kamar mandi dan review kapasitas layanan instalasi.
+            </p>
+            <p className="mt-3 text-sm leading-6 text-slate-400">Contoh kasus terpilih: kamar mandi licin untuk lansia.</p>
           </div>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {statusCards.map((card) => {
-          const Icon = card.icon;
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+        {kpis.map(([label, value], index) => {
+          const icons = [Users, UserRoundCheck, PackageCheck, Wrench, AlertTriangle, Bot];
+          const Icon = icons[index] ?? Users;
           return (
-            <div key={card.label} className="rounded-lg border border-white/10 bg-white/[0.055] p-5 shadow-xl shadow-black/15 backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/[0.075]">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10">
-                  <Icon className="h-5 w-5 text-red-200" aria-hidden="true" />
-                </div>
-                <span className="rounded-full bg-slate-950/70 px-2.5 py-1 text-[11px] font-semibold text-slate-300">{card.note}</span>
-              </div>
-              <p className="mt-4 text-sm text-slate-400">{card.label}</p>
-              <p className="mt-1 text-xl font-semibold text-white">{card.value}</p>
+            <div key={label} className="rounded-lg border border-white/10 bg-white/[0.055] p-4">
+              <Icon className="h-5 w-5 text-red-200" aria-hidden="true" />
+              <p className="mt-4 text-sm text-slate-400">{label}</p>
+              <p className="mt-1 text-2xl font-semibold text-white">{value}</p>
             </div>
           );
         })}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="rounded-lg border border-white/10 bg-white/[0.055] p-5">
-          <p className="text-sm text-slate-400">Cost & health</p>
-          <p className="mt-2 text-2xl font-semibold text-white">Low operational risk</p>
-          <p className="mt-2 text-sm leading-6 text-slate-400">Simulated metric based on local workflow execution and fallback-ready architecture.</p>
-        </div>
-        <div className="rounded-lg border border-white/10 bg-white/[0.055] p-5">
-          <p className="text-sm text-slate-400">Latency</p>
-          <p className="mt-2 text-2xl font-semibold text-white">Demo estimate</p>
-          <p className="mt-2 text-sm leading-6 text-slate-400">No production timing is claimed. This dashboard makes no API calls.</p>
-        </div>
-        <div className="rounded-lg border border-white/10 bg-white/[0.055] p-5">
-          <p className="text-sm text-slate-400">Runtime evidence</p>
-          <p className="mt-2 text-2xl font-semibold text-white">{workflow.metrics.agentStepsLogged} audit steps</p>
-          <p className="mt-2 text-sm leading-6 text-slate-400">{workflow.aiMeta.aiReason ?? "AI metadata captured for prototype auditability."}</p>
-        </div>
-      </div>
+      <DataTable title="Tabel Pola Kebutuhan Pelanggan" headers={["No", "Klaster Masalah", "Jumlah Input", "Urgensi", "Potensi Paket", "Tindak Lanjut"]} rows={problemRows} />
+      <DataTable title="Tabel Keputusan Prioritas" headers={["Prioritas", "Area Bisnis", "Temuan", "Rekomendasi Keputusan", "PIC Internal", "Status"]} rows={decisionRows} />
+      <DataTable title="Tabel Alert Operasional" headers={["Alert", "Dampak", "Level Risiko", "Rekomendasi", "Status"]} rows={alertRows} />
     </section>
+  );
+}
+
+function PersonaCard({ title, text, menu }: { title: string; text: string; menu: string }) {
+  return (
+    <div className="rounded-lg border border-white/10 bg-slate-950/35 p-4">
+      <BriefcaseBusiness className="h-5 w-5 text-red-200" aria-hidden="true" />
+      <p className="mt-3 text-sm font-semibold text-white">{title}</p>
+      <p className="mt-2 text-sm leading-6 text-slate-400">{text}</p>
+      <p className="mt-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Menu: {menu}</p>
+    </div>
+  );
+}
+
+function DataTable({ title, headers, rows }: { title: string; headers: string[]; rows: string[][] }) {
+  return (
+    <div className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.055]">
+      <div className="border-b border-white/10 px-5 py-4">
+        <h2 className="text-lg font-semibold text-white">{title}</h2>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[980px] border-collapse text-left text-sm">
+          <thead className="bg-slate-950/65 text-xs uppercase tracking-[0.14em] text-slate-500">
+            <tr>{headers.map((header) => <th key={header} className="px-4 py-4">{header}</th>)}</tr>
+          </thead>
+          <tbody className="divide-y divide-white/10">
+            {rows.map((row) => (
+              <tr key={row.join("-")} className="transition hover:bg-white/[0.045]">
+                {row.map((cell, index) => (
+                  <td key={`${cell}-${index}`} className={`px-4 py-4 leading-6 ${index === 1 ? "font-semibold text-white" : "text-slate-300"}`}>
+                    {cell}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }

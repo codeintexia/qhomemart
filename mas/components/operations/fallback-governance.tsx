@@ -6,10 +6,25 @@ export function FallbackGovernance({ policies }: { policies: FallbackPolicy[] })
     <section className="space-y-5">
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-red-200">Fallback Governance</p>
-        <h2 className="mt-2 text-3xl font-semibold text-white">Business continuity and audit controls</h2>
+        <h2 className="mt-2 text-3xl font-semibold text-white">Kontrol Fallback dan audit</h2>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
-          These are prototype governance policies, designed to show how MAS avoids brittle chatbot behavior without claiming production readiness.
+          Kebijakan Fallback menjaga Workflow tetap berjalan saat Model, validasi, atau sinyal layanan belum lengkap.
         </p>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-2">
+        <div className="rounded-lg border border-white/10 bg-white/[0.055] p-4">
+          <p className="text-sm font-semibold text-white">Jika LLM tidak tersedia</p>
+          <p className="mt-2 text-sm leading-6 text-slate-400">
+            Customer Triage Agent menggunakan deterministic fallback agar intake pelanggan tetap bisa diproses.
+          </p>
+        </div>
+        <div className="rounded-lg border border-white/10 bg-white/[0.055] p-4">
+          <p className="text-sm font-semibold text-white">Downstream agent tetap deterministik</p>
+          <p className="mt-2 text-sm leading-6 text-slate-400">
+            Context Risk, Product Match, Service Match, Bundle Strategy, dan Staff Insight dibuat deterministik untuk menjaga rekomendasi stabil, reproducible, dan dapat diaudit.
+          </p>
+        </div>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">

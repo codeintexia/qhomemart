@@ -3,7 +3,7 @@ import type { AgentDefinition, CognitionLayer } from "./operations-data";
 
 function statusClass(status: CognitionLayer["status"]) {
   if (status === "Active") return "border-emerald-300/30 bg-emerald-400/10 text-emerald-200";
-  if (status === "Simulated") return "border-amber-300/30 bg-amber-400/10 text-amber-200";
+  if (status === "Preview Mode") return "border-amber-300/30 bg-amber-400/10 text-amber-200";
   return "border-slate-500/40 bg-slate-500/10 text-slate-300";
 }
 
@@ -16,6 +16,7 @@ export function AgentAnatomyPanel({
 }) {
   const fields = [
     ["Role", agent.role],
+    ["Business purpose", agent.businessPurpose],
     ["Input contract", agent.inputContract],
     ["Reasoning task", agent.reasoningTask],
     ["Output contract", agent.outputContract],
