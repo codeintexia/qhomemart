@@ -16,7 +16,7 @@ export function BusinessDecision({ workflow }: { workflow: WorkflowRunResult }) 
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-red-200">Business Decision</p>
         <h2 className="mt-2 text-3xl font-semibold text-white">Stakeholder decision support</h2>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
-          This panel uses workflow-derived demo output and avoids fake revenue, live stock, or production claims.
+          This panel uses workflow-derived current-scope output and avoids revenue, live stock, or connected-system claims.
         </p>
       </div>
 
@@ -45,7 +45,7 @@ export function BusinessDecision({ workflow }: { workflow: WorkflowRunResult }) 
           Create a guided safety bundle campaign and staff-assisted selling flow.
         </p>
         <p className="mt-3 text-sm leading-6 text-emerald-100/80">
-          The current workflow supports a clear campaign signal while keeping service availability and production integration claims scoped to prototype status.
+          The current workflow supports a clear campaign signal while keeping service availability and connected-system claims scoped to current scope.
         </p>
       </div>
     </section>

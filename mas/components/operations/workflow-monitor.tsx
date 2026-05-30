@@ -16,9 +16,9 @@ export function WorkflowMonitor({
     <section className="space-y-5">
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-red-200">Workflow Monitor</p>
-        <h2 className="mt-2 text-3xl font-semibold text-white">Bathroom safety orchestration trace</h2>
+        <h2 className="mt-2 text-3xl font-semibold text-white">Trace contoh kasus terpilih</h2>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
-          Animated flow is a dashboard visualization of the current prototype pipeline. The workflow itself remains deterministic unless optional LLM triage is configured.
+          Alur ini menampilkan contoh kasus terpilih: kamar mandi licin untuk lansia.
         </p>
       </div>
 

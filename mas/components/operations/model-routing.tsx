@@ -3,6 +3,45 @@
 import { Cpu, Gauge, Route } from "lucide-react";
 import type { ModelOption } from "./operations-data";
 
+const agentRoutingPreview = [
+  {
+    agent: "Customer Triage Agent",
+    mode: "LLM-assisted saat configured",
+    recommendedModel: "Gemini 2.0 Flash",
+    note: "Satu-satunya agent yang memakai jalur LLM saat provider tersedia.",
+  },
+  {
+    agent: "Context Risk Agent",
+    mode: "Deterministik",
+    recommendedModel: "Routing preview",
+    note: "Live multi-model execution masih under construction.",
+  },
+  {
+    agent: "Product Match Agent",
+    mode: "Deterministik",
+    recommendedModel: "Routing preview",
+    note: "Rekomendasi dijaga stabil melalui aturan dan katalog cakupan saat ini.",
+  },
+  {
+    agent: "Service Match Agent",
+    mode: "Deterministik",
+    recommendedModel: "Routing preview",
+    note: "Tidak memanggil API eksternal untuk layanan.",
+  },
+  {
+    agent: "Bundle Strategy Agent",
+    mode: "Deterministik",
+    recommendedModel: "Routing preview",
+    note: "Paket dibentuk dari aturan agar mudah diaudit.",
+  },
+  {
+    agent: "Staff Insight Agent",
+    mode: "Deterministik",
+    recommendedModel: "Routing preview",
+    note: "Insight disusun dari output Workflow yang sudah stabil.",
+  },
+];
+
 export function ModelRouting({
   models,
   selectedModelId,
@@ -18,9 +57,29 @@ export function ModelRouting({
     <section className="space-y-5">
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-red-200">Model Routing</p>
-        <h2 className="mt-2 text-3xl font-semibold text-white">Simulated model router</h2>
+        <h2 className="mt-2 text-3xl font-semibold text-white">Routing preview per Agent</h2>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
-          Model picker changes local dashboard state only. Routing policy is simulated for the prototype and makes no external calls.
+          Customer Triage Agent memakai LLM-assisted triage saat configured. Agent lainnya tetap deterministik. Routing untuk multi-model live masih under construction.
+        </p>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
+        {agentRoutingPreview.map((item) => (
+          <div key={item.agent} className="rounded-lg border border-white/10 bg-white/[0.055] p-4">
+            <p className="text-sm font-semibold text-white">{item.agent}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-xs font-semibold text-slate-300">{item.mode}</span>
+              <span className="rounded-full border border-amber-300/30 bg-amber-400/10 px-2.5 py-1 text-xs font-semibold text-amber-200">{item.recommendedModel}</span>
+            </div>
+            <p className="mt-3 text-sm leading-6 text-slate-400">{item.note}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="rounded-lg border border-amber-300/20 bg-amber-400/10 p-4">
+        <p className="text-sm font-semibold text-amber-100">Routing preview</p>
+        <p className="mt-1 text-sm leading-6 text-amber-100/80">
+          Under construction untuk live multi-model execution. Tampilan ini tidak mengklaim semua agent memanggil API eksternal.
         </p>
       </div>
 
@@ -57,7 +116,7 @@ export function ModelRouting({
               <h3 className="mt-2 text-3xl font-semibold text-white">{selected.name}</h3>
             </div>
             <span className="rounded-full border border-amber-300/30 bg-amber-400/10 px-3 py-1 text-xs font-semibold text-amber-200">
-              Simulated routing policy for prototype
+              Routing preview
             </span>
           </div>
 

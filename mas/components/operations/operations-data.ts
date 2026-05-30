@@ -1,24 +1,23 @@
 import type { WorkflowRunResult } from "@/types/mas-types";
 
 export type SectionId =
-  | "overview"
-  | "agent-fleet"
-  | "workflow-monitor"
-  | "model-routing"
-  | "fallback-governance"
-  | "business-decision"
-  | "logs-audit"
-  | "settings"
-  | "human-review"
-  | "knowledge-base";
+  | "home"
+  | "customers"
+  | "journeys"
+  | "products-bundles"
+  | "services"
+  | "insights"
+  | "operations"
+  | "ai-layer"
+  | "audit"
+  | "settings";
 
-export type AgentStatus = "active" | "simulated" | "fallback-ready";
-export type LayerStatus = "Active" | "Simulated" | "Planned";
+export type AgentStatus = "active" | "preview-mode" | "fallback-ready";
+export type LayerStatus = "Active" | "Preview Mode" | "Planned";
 
 export interface SidebarItem {
   id: SectionId;
   label: string;
-  comingSoon?: boolean;
 }
 
 export interface AgentDefinition {
@@ -33,6 +32,7 @@ export interface AgentDefinition {
   lastRunStatus: string;
   outputType: string;
   role: string;
+  businessPurpose: string;
   inputContract: string;
   reasoningTask: string;
   outputContract: string;
@@ -62,17 +62,124 @@ export interface FallbackPolicy {
   auditabilityBenefit: string;
 }
 
+export interface RetailSignal {
+  label: string;
+  value: string;
+  detail: string;
+  status?: string;
+}
+
+export interface JourneyStage {
+  label: string;
+  detail: string;
+}
+
 export const sidebarItems: SidebarItem[] = [
-  { id: "overview", label: "Overview" },
-  { id: "agent-fleet", label: "Agent Fleet" },
-  { id: "workflow-monitor", label: "Workflow Monitor" },
-  { id: "model-routing", label: "Model Routing" },
-  { id: "fallback-governance", label: "Fallback Governance" },
-  { id: "business-decision", label: "Business Decision" },
-  { id: "logs-audit", label: "Logs & Audit" },
-  { id: "settings", label: "Settings", comingSoon: true },
-  { id: "human-review", label: "Human Review", comingSoon: true },
-  { id: "knowledge-base", label: "Knowledge Base", comingSoon: true },
+  { id: "home", label: "Ringkasan" },
+  { id: "customers", label: "Pelanggan" },
+  { id: "journeys", label: "Alur Pelanggan" },
+  { id: "products-bundles", label: "Produk & Paket" },
+  { id: "services", label: "Layanan" },
+  { id: "insights", label: "Insight Bisnis" },
+  { id: "operations", label: "Operasional" },
+  { id: "ai-layer", label: "Sistem AI" },
+  { id: "audit", label: "Log & Audit" },
+  { id: "settings", label: "Pengaturan" },
+];
+
+export const executiveMetrics: RetailSignal[] = [
+  {
+    label: "Kebutuhan pelanggan masuk",
+    value: "128",
+    detail: "Sinyal kebutuhan pelanggan dari berbagai kategori.",
+    status: "Operational signal",
+  },
+  {
+    label: "Peluang paket",
+    value: "18",
+    detail: "Paket produk dan layanan yang siap ditindaklanjuti.",
+    status: "Workflow",
+  },
+  {
+    label: "Tindak lanjut layanan",
+    value: "11",
+    detail: "Sinyal instalasi atau konsultasi untuk tim toko.",
+    status: "Siap staf",
+  },
+  {
+    label: "Kesehatan sistem AI",
+    value: "Operational",
+    detail: "Workflow AI berjalan dan memiliki Fallback.",
+    status: "Healthy",
+  },
+];
+
+export const problemClusters: RetailSignal[] = [
+  { label: "Keamanan kamar mandi", value: "Minat tinggi", detail: "Lansia, anti-slip, pegangan, dan pencahayaan." },
+  { label: "Kebocoran air", value: "Meningkat", detail: "Deteksi bocor, sealant, pipa, dan arahan staf." },
+  { label: "Pemilihan cat", value: "Berulang", detail: "Warna, tipe ruangan, kebutuhan cat, dan alat." },
+  { label: "Pompa & plumbing", value: "Terkait layanan", detail: "Pompa air, fitting pipa, dan pertanyaan instalasi." },
+  { label: "Renovasi dapur", value: "Bisa dipaketkan", detail: "Storage, sink, lighting, dan kebutuhan permukaan." },
+  { label: "Upgrade lighting", value: "Cross-sell", detail: "Terang, aman, hemat energi, dan pilihan fixture." },
+];
+
+export const businessOpportunities: RetailSignal[] = [
+  { label: "Safety bundle campaign", value: "Priority", detail: "Bundle anti-slip, grab bars, lighting, and staff guidance." },
+  { label: "Plumbing service bundle", value: "Opportunity", detail: "Link leakage inquiries to repair kits and service follow-up." },
+  { label: "Paint consultation path", value: "Opportunity", detail: "Guide color, surface prep, tools, and coverage estimates." },
+  { label: "Installation upsell", value: "Opportunity", detail: "Connect complex product baskets to installation guidance." },
+];
+
+export const recommendedDecisions: RetailSignal[] = [
+  { label: "Prioritaskan paket keamanan kamar mandi", value: "Aksi berikutnya", detail: "Cluster minat tinggi dengan alur jual berbantuan staf." },
+  { label: "Siapkan skrip penjualan berbantuan staf", value: "Aksi berikutnya", detail: "Bantu tim toko menjelaskan solusi untuk keluarga caregiver." },
+  { label: "Petakan pertanyaan plumbing berulang", value: "Aksi berikutnya", detail: "Perkaya knowledge mapping untuk bocor dan pompa." },
+  { label: "Tinjau kapasitas layanan instalasi", value: "Aksi berikutnya", detail: "Pastikan kesiapan follow-up sebelum memperluas layanan." },
+];
+
+export const operationalAlerts: RetailSignal[] = [
+  { label: "Cluster minat tinggi terdeteksi", value: "Keamanan kamar mandi", detail: "Beberapa sinyal mengarah ke kebutuhan safety yang mendesak." },
+  { label: "Antrean layanan meningkat", value: "Pantau", detail: "Arahan instalasi dan perbaikan perlu review kapasitas staf." },
+  { label: "Knowledge mapping perlu update", value: "Dalam pengembangan", detail: "Topik plumbing dan cat perlu mapping yang lebih stabil." },
+  { label: "Fallback sehat", value: "Operational", detail: "Fallback deterministik tersedia untuk menjaga alur." },
+];
+
+export const customerIntentClusters: RetailSignal[] = [
+  { label: "Caregiver household", value: "Safety first", detail: "Needs trusted guidance for elderly bathroom safety.", status: "High urgency" },
+  { label: "Leakage repair shopper", value: "Problem solving", detail: "Asks about sealant, pipe fittings, and repair workflow.", status: "Medium urgency" },
+  { label: "Paint planning customer", value: "Decision support", detail: "Needs color, room, quantity, and tool guidance.", status: "Low urgency" },
+  { label: "Renovation planner", value: "Project basket", detail: "Compares kitchen, lighting, storage, and service options.", status: "Medium urgency" },
+];
+
+export const inquiryPatterns: RetailSignal[] = [
+  { label: "Common user input", value: "Kamar mandi licin untuk orang tua", detail: "Safety and caregiver intent." },
+  { label: "Common user input", value: "Pipa bocor dan air merembes", detail: "Leakage and repair intent." },
+  { label: "Common user input", value: "Cat yang cocok untuk kamar anak", detail: "Paint consultation intent." },
+  { label: "Budget signal", value: "Hemat dulu", detail: "Prioritize essential basket before premium additions." },
+];
+
+export const aggregateJourneyStages: JourneyStage[] = [
+  { label: "Customer problem", detail: "Customer describes a household need across safety, repair, paint, plumbing, or renovation." },
+  { label: "Guided intake", detail: "Retail OS captures story, context, preference, and urgency signals." },
+  { label: "LLM triage", detail: "Configurable provider layer can assist classification when configured." },
+  { label: "Semantic normalization", detail: "Equivalent phrasing maps into stable retail workflow states." },
+  { label: "Product bundle", detail: "Categories, cross-sell, and service linkage are assembled into a basket opportunity." },
+  { label: "Staff handoff", detail: "Store teams receive a concise next-best-action summary." },
+  { label: "Business insight", detail: "Stakeholders see campaign, category, and operations signals." },
+];
+
+export const bundleCandidates: RetailSignal[] = [
+  { label: "Bathroom Safety Starter", value: "Anti-slip + grab bar + lighting", detail: "Best fit for caregiver household and elderly safety intent." },
+  { label: "Leakage Quick Fix", value: "Sealant + pipe fitting + staff guidance", detail: "Links repair products with optional service follow-up." },
+  { label: "Paint Consultation Basket", value: "Paint + primer + tools", detail: "Guides color, surface prep, and quantity planning." },
+  { label: "Kitchen Upgrade Path", value: "Storage + sink + lighting", detail: "Cross-sell opportunity for renovation planners." },
+];
+
+export const serviceSignals: RetailSignal[] = [
+  { label: "Installation guidance", value: "Bathroom safety", detail: "Grab bar and lighting guidance can trigger staff follow-up." },
+  { label: "Repair guidance", value: "Water leakage", detail: "Pipe and sealant inquiries may require service triage." },
+  { label: "Consultation request", value: "Paint selection", detail: "Staff can help validate color and coverage choices." },
+  { label: "Project request signal", value: "Kitchen renovation", detail: "Multi-category baskets benefit from assisted planning." },
 ];
 
 export const agentFleet: AgentDefinition[] = [
@@ -82,12 +189,13 @@ export const agentFleet: AgentDefinition[] = [
     shortName: "Customer Triage",
     status: "active",
     criticality: "Core",
-    modelUsed: "Sumopod / Gemini 2.0 Flash when configured",
+    modelUsed: "Configurable provider / Gemini 2.0 Flash when configured",
     costTier: "Low",
     fallbackBehavior: "Deterministic triage if LLM is unavailable or invalid",
     lastRunStatus: "Completed in deterministic fallback mode",
     outputType: "Structured triage JSON",
     role: "Converts customer language and chip selections into a stable problem category, user context, constraints, and normalized need.",
+    businessPurpose: "Turns ambiguous customer needs into a retail workflow that staff, category, and service teams can act on.",
     inputContract: "Customer story, selected problem chips, buying preference.",
     reasoningTask: "Identify intent, room, user risk, constraints, and the canonical workflow state needed by downstream agents.",
     outputContract: "problemCategory, primarySpace, primaryUser, constraints, normalizedNeed, reasoning, aiMeta.",
@@ -106,6 +214,7 @@ export const agentFleet: AgentDefinition[] = [
     lastRunStatus: "Detected high-priority safety risks",
     outputType: "Risk list and narrative",
     role: "Turns the triage state into ordered safety and context risks.",
+    businessPurpose: "Helps prioritize urgency and protects staff from treating all inquiries as equal.",
     inputContract: "TriageOutput with problem category, primary user, and constraints.",
     reasoningTask: "Rank hazards and explain why they matter for an elderly bathroom-safety scenario.",
     outputContract: "Ordered risks with severity, reason, and priority.",
@@ -120,11 +229,12 @@ export const agentFleet: AgentDefinition[] = [
     criticality: "High",
     modelUsed: "Deterministic catalog matching",
     costTier: "Low",
-    fallbackBehavior: "Continues with demo product catalog and safe category matching",
+    fallbackBehavior: "Continues with current-scope product catalog and safe category matching",
     lastRunStatus: "Matched bathroom safety product groups",
     outputType: "Sectioned product recommendations",
     role: "Maps risk evidence to relevant QHomemart-style product categories.",
-    inputContract: "TriageOutput, RiskOutput, demo product catalog.",
+    businessPurpose: "Converts customer problems into basket and category opportunities.",
+    inputContract: "TriageOutput, RiskOutput, current-scope product catalog.",
     reasoningTask: "Prioritize anti-slip, grab bar, lighting, and low-reach storage products by risk.",
     outputContract: "Section A and Section B matched products.",
     downstreamConsumer: "Service Match Agent and Bundle Strategy Agent",
@@ -142,11 +252,12 @@ export const agentFleet: AgentDefinition[] = [
     lastRunStatus: "Generated optional service guidance",
     outputType: "Service guidance",
     role: "Adds safe installation or renovation guidance without pretending service availability is live.",
-    inputContract: "TriageOutput, RiskOutput, demo service list.",
+    businessPurpose: "Identifies when a product basket may need staff follow-up or service guidance.",
+    inputContract: "TriageOutput, RiskOutput, current-scope service list.",
     reasoningTask: "Decide when staff-assisted service guidance is useful and how to phrase availability safely.",
     outputContract: "Optional Section C service guidance and availability note.",
     downstreamConsumer: "Bundle Strategy Agent",
-    evidenceGenerated: "Service match reason and prototype availability disclaimer.",
+    evidenceGenerated: "Service match reason and current-scope availability note.",
   },
   {
     id: "bundle-strategy",
@@ -160,6 +271,7 @@ export const agentFleet: AgentDefinition[] = [
     lastRunStatus: "Generated guided safety bundle",
     outputType: "Bundle sections",
     role: "Packages product and service outputs into a sellable guided solution.",
+    businessPurpose: "Creates bundle candidates that category and store teams can operationalize.",
     inputContract: "Product matches, service matches, buying preference, bundle rules.",
     reasoningTask: "Separate must-have safety items, useful additions, and optional service guidance.",
     outputContract: "Bundle title, subtitle, and ordered solution sections.",
@@ -170,7 +282,7 @@ export const agentFleet: AgentDefinition[] = [
     id: "staff-insight",
     name: "Staff Insight Agent",
     shortName: "Staff Insight",
-    status: "simulated",
+    status: "preview-mode",
     criticality: "Medium",
     modelUsed: "Deterministic insight synthesis",
     costTier: "Low",
@@ -178,6 +290,7 @@ export const agentFleet: AgentDefinition[] = [
     lastRunStatus: "Generated staff summary and business insight",
     outputType: "Staff summary and stakeholder insight",
     role: "Turns the workflow into staff-facing guidance and stakeholder decision support.",
+    businessPurpose: "Makes workflow output useful for selling scripts, campaign planning, and management decisions.",
     inputContract: "All previous agent outputs.",
     reasoningTask: "Explain the customer need, pain cluster, bundle opportunity, and campaign signal.",
     outputContract: "Staff summary and businessInsight object.",
@@ -198,7 +311,7 @@ export const modelOptions: ModelOption[] = [
     name: "Gemini 2.0 Flash",
     costTier: "Low",
     speedTier: "Fast",
-    taskFit: "Selected for Indonesian structured JSON triage and low-latency prototype routing.",
+    taskFit: "Selected for Indonesian structured JSON triage and low-latency configured workflow routing.",
     fallbackModel: "Deterministic fallback",
   },
   {
@@ -238,7 +351,7 @@ export const modelOptions: ModelOption[] = [
     name: "Claude Sonnet",
     costTier: "High",
     speedTier: "Deliberate",
-    taskFit: "Candidate for deeper review tasks, not selected for this prototype triage path.",
+    taskFit: "Candidate for deeper review tasks, not selected for this current-scope triage path.",
     fallbackModel: "Gemini 2.0 Flash",
   },
 ];
@@ -278,7 +391,7 @@ export const triageCognitionLayers: CognitionLayer[] = [
   },
   {
     label: "Interaction Layer",
-    explanation: "Uses story text, chips, and buying preference from the prototype UI.",
+    explanation: "Uses story text, chips, and buying preference from the configured intake UI.",
     status: "Active",
   },
   {
@@ -288,8 +401,8 @@ export const triageCognitionLayers: CognitionLayer[] = [
   },
   {
     label: "Model Routing",
-    explanation: "Routes to Sumopod LLM-assisted triage when configured, otherwise deterministic logic.",
-    status: "Simulated",
+    explanation: "Routes to the configured provider for LLM-assisted triage when configured, otherwise deterministic logic.",
+    status: "Preview Mode",
   },
   {
     label: "Validation",
@@ -299,7 +412,7 @@ export const triageCognitionLayers: CognitionLayer[] = [
   {
     label: "Semantic Normalization",
     explanation: "Maps equivalent phrases to the canonical workflow state used by downstream agents.",
-    status: "Simulated",
+    status: "Preview Mode",
   },
   {
     label: "Workflow Output",
