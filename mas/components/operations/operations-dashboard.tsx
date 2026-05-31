@@ -26,29 +26,36 @@ import {
 
 export function OperationsDashboard({ workflow }: { workflow: WorkflowRunResult }) {
   const [activeSection, setActiveSection] = useState<SectionId>("home");
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const activeItem = sidebarItems.find((item) => item.id === activeSection);
 
   return (
     <div className="min-h-screen bg-[#070b13] text-slate-100">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(215,25,32,0.18),transparent_34%),radial-gradient(circle_at_82%_8%,rgba(25,59,140,0.16),transparent_30%)]" />
       <div className="relative flex min-h-screen">
-        <OperationsSidebar items={sidebarItems} activeSection={activeSection} onSectionChange={setActiveSection} />
+        <OperationsSidebar
+          items={sidebarItems}
+          activeSection={activeSection}
+          onSectionChange={setActiveSection}
+          isMobileOpen={isMobileNavOpen}
+          onMobileClose={() => setIsMobileNavOpen(false)}
+        />
 
         <main className="min-w-0 flex-1">
-          <div className="sticky top-0 z-20 border-b border-white/10 bg-[#070b13]/85 px-4 py-3 backdrop-blur lg:hidden">
-            <div className="flex items-center gap-3">
-              <Menu className="h-5 w-5 text-red-200" aria-hidden="true" />
-              <select
-                value={activeSection}
-                onChange={(event) => setActiveSection(event.target.value as SectionId)}
-                className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
-                aria-label="Menu dashboard"
+          <div className="sticky top-0 z-20 border-b border-white/10 bg-[#070b13]/85 px-4 py-3 backdrop-blur md:hidden">
+            <div className="flex min-w-0 items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsMobileNavOpen(true)}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.06] text-red-200 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
+                aria-label="Open navigation menu"
               >
-                {sidebarItems.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
+                <Menu className="h-5 w-5" aria-hidden="true" />
+              </button>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-white">QHomemart Retail OS</p>
+                <p className="truncate text-xs text-slate-400">{activeItem?.label ?? "Dashboard"}</p>
+              </div>
             </div>
           </div>
 
@@ -58,7 +65,7 @@ export function OperationsDashboard({ workflow }: { workflow: WorkflowRunResult 
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">QHomemart Retail OS</p>
                 <p className="mt-1 text-sm text-slate-400">Dashboard operasional ritel dengan sistem AI.</p>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex max-w-full flex-wrap items-center gap-2">
                 <Link
                   href="/"
                   aria-label="Go to public home"

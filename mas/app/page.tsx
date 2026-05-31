@@ -34,19 +34,19 @@ type Preference = "hemat" | "aman" | "lengkap"
 function PhoneShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[#F0EBE3] via-[#E8E2D9] to-[#F5F0E8]">
-      <div className="fixed right-4 top-4 z-50 flex flex-wrap items-center justify-end gap-2">
+      <div className="fixed left-3 right-3 top-3 z-50 flex flex-wrap items-center justify-end gap-2 sm:left-auto sm:right-4 sm:top-4">
         <Link
           href="/"
           aria-label="Go to public home"
           aria-current="page"
-          className="rounded-full border border-[#D71920]/20 bg-white px-3 py-1.5 text-xs font-semibold text-[#D71920] shadow-sm"
+          className="max-w-[calc(50vw-0.75rem)] truncate rounded-full border border-[#D71920]/20 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-[#D71920] shadow-sm sm:max-w-none sm:px-3 sm:text-xs"
         >
           Public Home
         </Link>
         <Link
           href="/operations"
           aria-label="Go to operations dashboard"
-          className="rounded-full border border-[#193B8C]/20 bg-[#193B8C] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#193B8C]/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D71920] focus-visible:ring-offset-2"
+          className="max-w-[calc(50vw-0.75rem)] truncate rounded-full border border-[#193B8C]/20 bg-[#193B8C] px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm transition hover:bg-[#193B8C]/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D71920] focus-visible:ring-offset-2 sm:max-w-none sm:px-3 sm:text-xs"
         >
           Operations Dashboard
         </Link>
