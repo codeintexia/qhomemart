@@ -32,7 +32,7 @@ const routingRows = [
   ["Demand classification", "Customer Triage LLM when configured", "Rule-based triage", "LLM unavailable or invalid output", "Staff review for P1", "Active"],
   ["Package mapping", "Rule-based mapping", "Manual package review", "Product data missing", "Category approval", "Monitoring"],
   ["Service recommendation", "Rule-based service map", "Supervisor review", "Service capacity unclear", "Supervisor approval", "Needs Review"],
-  ["Decision signal", "Operational signal aggregation", "Management review", "Business impact above threshold", "Management approval", "Active"],
+  ["Decision signal", "Workflow signal aggregation", "Management review", "Business impact above threshold", "Management approval", "Active"],
 ];
 
 const fallbackRows = [

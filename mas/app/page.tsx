@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect } from "react"
+import Link from "next/link"
 import { runBathroomSafetyWorkflow } from "@/workflows/bathroom-safety-workflow"
 import {
   Search,
@@ -33,6 +34,23 @@ type Preference = "hemat" | "aman" | "lengkap"
 function PhoneShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[#F0EBE3] via-[#E8E2D9] to-[#F5F0E8]">
+      <div className="fixed right-4 top-4 z-50 flex flex-wrap items-center justify-end gap-2">
+        <Link
+          href="/"
+          aria-label="Go to public home"
+          aria-current="page"
+          className="rounded-full border border-[#D71920]/20 bg-white px-3 py-1.5 text-xs font-semibold text-[#D71920] shadow-sm"
+        >
+          Public Home
+        </Link>
+        <Link
+          href="/operations"
+          aria-label="Go to operations dashboard"
+          className="rounded-full border border-[#193B8C]/20 bg-[#193B8C] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#193B8C]/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D71920] focus-visible:ring-offset-2"
+        >
+          Operations Dashboard
+        </Link>
+      </div>
       {/* Desktop phone frame */}
       <div className="hidden md:block relative">
         {/* Phone outer frame */}

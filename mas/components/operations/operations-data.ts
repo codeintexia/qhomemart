@@ -96,7 +96,7 @@ export const executiveMetrics: RetailSignal[] = [
     label: "Kebutuhan pelanggan masuk",
     value: "128",
     detail: "Sinyal kebutuhan pelanggan dari berbagai kategori.",
-    status: "Operational signal",
+    status: "Workflow signal",
   },
   {
     label: "Peluang paket",

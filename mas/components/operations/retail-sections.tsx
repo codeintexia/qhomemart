@@ -169,7 +169,7 @@ const insightSummaryCards = [
 ];
 
 const insightTraceabilityBadges = [
-  ["Signal source", "Operational signal aggregation"],
+  ["Signal source", "Workflow signal aggregation"],
   ["Workflow", "Decision Workflow v1.3"],
   ["Review status", "Management reviewed"],
   ["Audit trail", "Evidence, owner, due, dan status tersimpan"],
