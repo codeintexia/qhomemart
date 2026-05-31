@@ -3,12 +3,14 @@ import type { WorkflowRunResult } from "@/types/mas-types";
 export type SectionId =
   | "home"
   | "customers"
-  | "journeys"
-  | "products-bundles"
+  | "inquiries"
+  | "products-stock"
+  | "bundles"
   | "services"
+  | "staff-follow-up"
   | "insights"
   | "operations"
-  | "ai-layer"
+  | "ai-automation"
   | "audit"
   | "settings";
 
@@ -75,15 +77,17 @@ export interface JourneyStage {
 }
 
 export const sidebarItems: SidebarItem[] = [
-  { id: "home", label: "Ringkasan" },
+  { id: "home", label: "Dashboard" },
   { id: "customers", label: "Pelanggan" },
-  { id: "journeys", label: "Alur Pelanggan" },
-  { id: "products-bundles", label: "Produk & Paket" },
+  { id: "inquiries", label: "Inquiry / Permintaan" },
+  { id: "products-stock", label: "Produk & Stok" },
+  { id: "bundles", label: "Paket & Bundling" },
   { id: "services", label: "Layanan" },
+  { id: "staff-follow-up", label: "Staff Follow-up" },
   { id: "insights", label: "Insight Bisnis" },
   { id: "operations", label: "Operasional" },
-  { id: "ai-layer", label: "Sistem AI" },
-  { id: "audit", label: "Log & Audit" },
+  { id: "ai-automation", label: "AI & Automation" },
+  { id: "audit", label: "Audit Log" },
   { id: "settings", label: "Pengaturan" },
 ];
 

@@ -1,17 +1,19 @@
 "use client";
 
-import { Activity, BarChart3, Bot, BriefcaseBusiness, ClipboardList, FileSearch, Gauge, PackageCheck, Settings, ShoppingBag, Users, Wrench } from "lucide-react";
+import { Activity, BarChart3, Bot, BriefcaseBusiness, ClipboardList, FileSearch, Gauge, PackageCheck, Settings, ShoppingBag, Users, Wrench, Boxes, ClipboardCheck } from "lucide-react";
 import type { SectionId, SidebarItem } from "./operations-data";
 
 const iconMap: Record<SectionId, React.ElementType> = {
   home: Gauge,
   customers: Users,
-  journeys: ClipboardList,
-  "products-bundles": PackageCheck,
+  inquiries: ClipboardList,
+  "products-stock": Boxes,
+  bundles: PackageCheck,
   services: Wrench,
+  "staff-follow-up": ClipboardCheck,
   insights: BarChart3,
   operations: BriefcaseBusiness,
-  "ai-layer": Bot,
+  "ai-automation": Bot,
   audit: FileSearch,
   settings: Settings,
 };

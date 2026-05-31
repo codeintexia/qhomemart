@@ -19,7 +19,7 @@ export function AgentFleet({
   return (
     <section className="space-y-5">
       <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-red-200">Sistem AI</p>
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-red-200">AI & Automation</p>
         <h2 className="mt-2 text-3xl font-semibold text-white">Alur komunikasi Agent</h2>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
           Agent bekerja berurutan. Output dari satu agent menjadi input untuk agent berikutnya.

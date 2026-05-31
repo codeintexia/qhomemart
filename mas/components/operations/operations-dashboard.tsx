@@ -1,50 +1,30 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Clock3, Menu } from "lucide-react";
 import type { WorkflowRunResult } from "@/types/mas-types";
-import { AgentAnatomyPanel } from "./agent-anatomy-panel";
-import { AgentFleet } from "./agent-fleet";
+import { AutomationGovernance } from "./automation-governance";
 import { CommandOverview } from "./command-overview";
-import { FallbackGovernance } from "./fallback-governance";
 import { LogsAudit } from "./logs-audit";
-import { ModelRouting } from "./model-routing";
 import { OperationsSidebar } from "./operations-sidebar";
 import {
+  BundlesSection,
   CustomersSection,
+  InquirySection,
   InsightsSection,
-  JourneysSection,
-  ProductsBundlesSection,
+  ProductsStockSection,
   RetailOperationsSection,
   ServicesSection,
   SettingsSection,
+  StaffFollowUpSection,
 } from "./retail-sections";
-import { WorkflowMonitor } from "./workflow-monitor";
 import {
-  agentFleet,
-  fallbackPolicies,
-  modelOptions,
   sidebarItems,
-  triageCognitionLayers,
   type SectionId,
 } from "./operations-data";
 
 export function OperationsDashboard({ workflow }: { workflow: WorkflowRunResult }) {
   const [activeSection, setActiveSection] = useState<SectionId>("home");
-  const [selectedAgentId, setSelectedAgentId] = useState(agentFleet[0].id);
-  const [selectedModelId, setSelectedModelId] = useState("gemini-2-flash");
-  const [enabledAgents, setEnabledAgents] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(agentFleet.map((agent) => [agent.id, true]))
-  );
-
-  const selectedAgent = useMemo(
-    () => agentFleet.find((agent) => agent.id === selectedAgentId) ?? agentFleet[0],
-    [selectedAgentId]
-  );
-
-  const handleToggleAgent = (agentId: string) => {
-    setEnabledAgents((current) => ({ ...current, [agentId]: !current[agentId] }));
-  };
 
   return (
     <div className="min-h-screen bg-[#070b13] text-slate-100">
@@ -96,16 +76,24 @@ export function OperationsDashboard({ workflow }: { workflow: WorkflowRunResult 
               <CustomersSection />
             </div>
 
-            <div className={activeSection === "journeys" ? "block" : "hidden"}>
-              <JourneysSection workflow={workflow} />
+            <div className={activeSection === "inquiries" ? "block" : "hidden"}>
+              <InquirySection />
             </div>
 
-            <div className={activeSection === "products-bundles" ? "block" : "hidden"}>
-              <ProductsBundlesSection />
+            <div className={activeSection === "products-stock" ? "block" : "hidden"}>
+              <ProductsStockSection />
+            </div>
+
+            <div className={activeSection === "bundles" ? "block" : "hidden"}>
+              <BundlesSection />
             </div>
 
             <div className={activeSection === "services" ? "block" : "hidden"}>
               <ServicesSection />
+            </div>
+
+            <div className={activeSection === "staff-follow-up" ? "block" : "hidden"}>
+              <StaffFollowUpSection />
             </div>
 
             <div className={activeSection === "insights" ? "block" : "hidden"}>
@@ -116,23 +104,11 @@ export function OperationsDashboard({ workflow }: { workflow: WorkflowRunResult 
               <RetailOperationsSection />
             </div>
 
-            <div className={activeSection === "ai-layer" ? "space-y-6" : "hidden"}>
-              <div className="grid gap-5 2xl:grid-cols-[1fr_420px]">
-                <AgentFleet
-                  agents={agentFleet}
-                  selectedAgentId={selectedAgentId}
-                  enabledAgents={enabledAgents}
-                  onSelectAgent={setSelectedAgentId}
-                  onToggleAgent={handleToggleAgent}
-                />
-                <AgentAnatomyPanel agent={selectedAgent} layers={triageCognitionLayers} />
-              </div>
-              <ModelRouting models={modelOptions} selectedModelId={selectedModelId} onSelectModel={setSelectedModelId} />
-              <FallbackGovernance policies={fallbackPolicies} />
+            <div className={activeSection === "ai-automation" ? "space-y-6" : "hidden"}>
+              <AutomationGovernance />
             </div>
 
             <div className={activeSection === "audit" ? "space-y-6" : "hidden"}>
-              <WorkflowMonitor agents={agentFleet} selectedAgentId={selectedAgentId} onSelectAgent={setSelectedAgentId} />
               <LogsAudit workflow={workflow} />
             </div>
 

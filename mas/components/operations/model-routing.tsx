@@ -63,6 +63,13 @@ export function ModelRouting({
         </p>
       </div>
 
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <ProviderStatus label="Provider aktif" value="Sumopod" />
+        <ProviderStatus label="Provider lain" value="Dapat dikonfigurasi" />
+        <ProviderStatus label="Model aktif" value="Gemini 2.0 Flash" />
+        <ProviderStatus label="API key status" value="configured / hidden" />
+      </div>
+
       <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
         {agentRoutingPreview.map((item) => (
           <div key={item.agent} className="rounded-lg border border-white/10 bg-white/[0.055] p-4">
@@ -144,6 +151,15 @@ function Metric({ icon: Icon, label, value }: { icon: React.ElementType; label: 
         {label}
       </div>
       <p className="mt-2 text-sm leading-6 text-slate-200">{value}</p>
+    </div>
+  );
+}
+
+function ProviderStatus({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-white/10 bg-white/[0.055] p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{label}</p>
+      <p className="mt-2 text-base font-semibold text-white">{value}</p>
     </div>
   );
 }
