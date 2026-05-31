@@ -1,119 +1,97 @@
-# QHomemart AI Agent Competition 2026
+# MAS QHomemart Retail OS
 
-**MAS QHomemart — Problem-to-Solution Bundle Multi-Agent System Prototype**
+MAS QHomemart Retail OS adalah AI-Assisted Retail Operating System untuk mendukung operasi retail, inquiry pelanggan, package recommendation, service coordination, staff follow-up, automation governance, dan audit trail.
 
----
+Project ini memiliki dua entry point penting:
 
-## About
+- Public Home: https://qhomemart.vercel.app/
+- Operations Dashboard: https://qhomemart.vercel.app/operations
 
-This repository contains MAS QHomemart, a multi-agent system (MAS) prototype
-designed for the QHomemart AI Agent Competition 2026.
+## Local Development
 
-The system transforms a customer's home problem description into a structured,
-actionable solution — spanning relevant demo products, optional service guidance,
-a staff-ready briefing, and business insight signals.
-
-> **Prototype only.** No real QHomemart production integration, no real inventory,
-> no real pricing, no real WhatsApp API, and no guaranteed service availability.
-
----
-
-## Main App
-
-The runnable prototype is located in:
-
-```
-mas/
-```
-
-All Next.js app code, agent modules, data, workflows, logs, and documentation
-are inside `mas/`.
-
----
-
-## Quick Start
-
-Run all commands from the **repository root**:
+Run dari repository root:
 
 ```bash
 npm install --prefix mas
-npm run build
 npm run dev
 ```
 
-Then open [http://localhost:3000](http://localhost:3000) in your browser.
+Alternatif langsung ke app Next.js:
 
-No API keys, no environment variables, no database setup required.
+```bash
+npm --prefix mas run dev
+```
 
----
+Build production:
+
+```bash
+npm run build
+```
+
+## Routes
+
+- `/`: public landing / home untuk customer-facing entry.
+- `/operations`: internal operations dashboard untuk stakeholder QHomemart.
+
+## Current Scope
+
+Operations dashboard saat ini mencakup:
+
+- Dashboard
+- Pelanggan
+- Inquiry / Permintaan
+- Produk & Stok
+- Paket & Bundling
+- Layanan
+- Staff Follow-up
+- Insight Bisnis
+- Operasional
+- AI & Automation
+- Audit Log
+- Pengaturan
+
+## Positioning
+
+- Business first, AI second.
+- Table-first internal retail dashboard.
+- Agent hanya salah satu modul, bukan identitas utama produk.
+- Human review, fallback, governance, dan auditability harus eksplisit.
+- Dashboard menampilkan local preview dan operational signal, bukan klaim production-ready penuh.
+
+## Scope Notes
+
+Beberapa bagian dashboard menggunakan data sample/local preview untuk menjelaskan alur operasi dan governance. Sistem ini tidak mengklaim integrasi live untuk hal-hal berikut jika belum terhubung:
+
+- live inventory / stock
+- live price sync
+- WhatsApp API
+- payment
+- production auth
+- backend database
+- supplier sync
 
 ## Project Structure
 
-```
+```text
 qhomemart.project/
-├── mas/                    ← Main prototype app (Next.js)
-│   ├── app/                ← UI — Next.js App Router (8 screens)
-│   ├── agents/             ← Agent modules (one file per agent)
-│   ├── data/               ← Dummy modular data (no real QHomemart data)
-│   ├── workflows/          ← Orchestration layer
-│   ├── logs/               ← Sample interaction log output
-│   ├── types/              ← Shared TypeScript types
-│   └── docs/               ← Project documentation
-├── package.json            ← Root workspace scripts (delegates to mas/)
-└── README.md               ← This file
+├── mas/
+│   ├── app/
+│   │   ├── page.tsx
+│   │   └── operations/
+│   ├── components/
+│   │   └── operations/
+│   ├── workflows/
+│   ├── data/
+│   ├── types/
+│   └── docs/
+├── package.json
+└── README.md
 ```
 
-### Agents
+## Important Implementation Notes
 
-| Agent | File | Role |
-|-------|------|------|
-| Customer Triage | `agents/customer-triage-agent.ts` | Classify problem chips and story |
-| Context & Risk | `agents/context-risk-agent.ts` | Identify risk factors and severity |
-| Product Match | `agents/product-match-agent.ts` | Group relevant products into sections |
-| Service Match | `agents/service-match-agent.ts` | Suggest optional service guidance |
-| Bundle Strategy | `agents/bundle-strategy-agent.ts` | Compose 3-section solution bundle |
-| Staff & Insight | `agents/staff-insight-agent.ts` | Generate staff summary and business insight |
-
----
-
-## Demo Scenario
-
-**Vertical:** Bathroom Safety for Older Adults / Caregivers
-
-> *"Ibu saya sudah lansia dan beberapa kali hampir terpeleset di kamar mandi."*
-
-The demo runs the complete 6-agent pipeline and drives Screens 5–8 of the UI
-with structured output from `runBathroomSafetyWorkflow()`.
-
----
-
-## Safety Limitations
-
-The following are explicitly **not** included in this prototype:
-
-- No real QHomemart product catalog or live inventory
-- No real QHomemart pricing (prototype uses budget tiers: Hemat / Sedang)
-- No real stock level tracking
-- No real WhatsApp API or messaging workflow
-- No guaranteed service availability
-- No payment processing
-- No user authentication or customer accounts
-- No backend database or persistent storage
-- No external API calls
-
-Demo data is in `mas/data/` as fictional TypeScript objects for demonstration only.
-
----
-
-## Documentation
-
-| File | Contents |
-|------|----------|
-| `mas/docs/01-architecture.md` | Folder map, architectural principles, scope |
-| `mas/docs/02-agent-workflow.md` | Agent sequence and data flow diagram |
-| `mas/docs/03-reproducibility.md` | How to run, how to replace demo data |
-| `mas/docs/04-evaluation.md` | Competition criteria mapping |
-
----
-
-*MAS QHomemart — Prototype. Not for production use.*
+- Customer-facing app tetap berada di `/`.
+- Internal operations dashboard berada di `/operations`.
+- `/operations` menggunakan local state untuk sidebar navigation dan dashboard controls.
+- API key atau secret asli tidak ditampilkan di UI.
+- Model routing, fallback policy, dan automation governance ditampilkan sebagai control/governance layer sesuai cakupan saat ini.
