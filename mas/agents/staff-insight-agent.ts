@@ -11,7 +11,7 @@
  *      categories, bundle opportunity, business and marketing opportunities)
  *      that management and analytics can use.
  *
- * Prototype: text is fixed for the bathroom-safety demo for reproducibility.
+ * Current scope: text is deterministic for supported scenarios.
  * Not connected to real QHomemart CRM, analytics, or reporting systems.
  */
 
@@ -45,11 +45,33 @@ export function runStaffInsightAgent(
   services: ServiceMatchOutput,
   bundle: BundleOutput
 ): StaffInsightOutput {
-  void triage;
   void risks;
   void products;
   void services;
   void bundle;
+
+  if (triage.problemCategory === "Kebocoran pipa dapur") {
+    return {
+      staffSummary:
+        "Pelanggan membutuhkan bantuan untuk kebocoran pipa dapur. Prioritas awal adalah menghentikan rembesan, mengecek sumber bocor, dan memastikan ukuran fitting atau seal yang tepat sebelum pembelian. Staff sebaiknya menanyakan lokasi bocor, jenis pipa, dan apakah ada kerusakan kabinet atau lantai di sekitar area sink.",
+      businessInsight: {
+        problem: "Kebocoran pipa dapur",
+        productCategories: ["Plumbing", "Sealant", "Fitting", "Perawatan dapur"],
+        bundleOpportunity: "Paket Tanggap Bocor Dapur",
+        businessOpportunities: [
+          "Meningkatkan attach rate produk plumbing dasar",
+          "Mengurangi salah beli melalui validasi staff",
+          "Menghubungkan produk plumbing dengan arahan layanan",
+          "Membaca pola permintaan perbaikan dapur ringan",
+        ],
+        digitalMarketingOpportunities: [
+          "Konten edukasi: tanda awal pipa dapur bocor",
+          "Promo tematik: paket tanggap bocor",
+          "Segmentasi: pemilik rumah, renovasi dapur, perawatan sink",
+        ],
+      },
+    };
+  }
 
   return {
     staffSummary:

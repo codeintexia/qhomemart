@@ -8,7 +8,7 @@
  * Section A — products for high-priority risks ("Mulai dari yang paling perlu")
  * Section B — products for medium-priority improvements ("Tambahan yang disarankan")
  *
- * Prototype: deterministic matching against the demo product list.
+ * Current scope: deterministic matching against the demo product list.
  * Not connected to real QHomemart catalog or inventory systems.
  */
 
@@ -38,12 +38,14 @@ export function runProductMatchAgent(
   products: DemoProduct[]
 ): ProductMatchOutput {
   void triageOutput;
-  void riskOutput;
 
   const sectionA: MatchedProduct[] = [];
   const sectionB: MatchedProduct[] = [];
+  const riskIds = new Set(riskOutput.risks.map((risk) => risk.id));
 
   for (const product of products) {
+    if (!riskIds.has(product.riskAddressed)) continue;
+
     if (product.sectionHint === "A") {
       sectionA.push({ product, section: "A" });
     } else {

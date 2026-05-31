@@ -1,168 +1,160 @@
-# MAS QHomemart
+# MAS QHomemart Retail OS
 
-**Problem-to-Solution Bundle Multi-Agent System Prototype**
+MAS QHomemart adalah AI-Assisted Retail Operating System untuk mengubah masalah pelanggan menjadi workflow retail yang dapat ditindaklanjuti: triage kebutuhan, risk assessment, product match, service guidance, package recommendation, staff follow-up, business insight, governance, dan audit trail.
 
----
+## Important URLs
 
-## Purpose
+- Public Home: https://qhomemart.vercel.app/
+- Operations Dashboard: https://qhomemart.vercel.app/operations
 
-MAS QHomemart is a multi-agent system (MAS) prototype designed to transform a customer's description of a home problem into a structured, actionable solution concept — spanning relevant demo products or product categories, optional service guidance if available, a staff-ready briefing, and business insight signals.
+## Local Reproducibility
 
-The system demonstrates how a Multi-Agent System architecture can be applied to the retail home-improvement domain to:
-
-- Suggest **relevant demo products or product categories** for a customer's specific home risk
-- Pair products with **optional staff-guided service inquiry if installation or light renovation support is needed**
-- Compose these into a **coherent, budget-aware bundle**
-- Generate a **staff briefing** that helps staff understand customer needs faster as a prototype goal
-- Produce **business insight** signals for management and analytics
-
----
-
-## Demo Vertical
-
-**Bathroom Safety for Older Adults & Caregivers**
-
-> *"Kamar mandi lantai satu licin dan tidak ada pegangan. Ibu saya (75 tahun) sudah pernah hampir jatuh dua kali bulan lalu."*
-
-The demo persona (Bu Sari, 75 tahun, fiktif) represents a high-urgency, budget-conscious household that wants to start from the most essential safety improvements first — a scenario that is representative, high-impact, and commercially relevant for QHomemart.
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Framework | [Next.js](https://nextjs.org/) App Router |
-| UI Library | [React](https://react.dev/) |
-| Styling | [Tailwind CSS](https://tailwindcss.com/) |
-| Interaction Visuals | CSS-based flow animation |
-| Language | [TypeScript](https://www.typescriptlang.org/) |
-| Icons | [Lucide React](https://lucide.dev/) |
-
----
-
-## Architecture
-
-```
-mas-qhomemart/
-├── app/          ← UI — Next.js App Router (8 screens in page.tsx)
-├── agents/       ← Agent modules (one file per agent)
-├── data/         ← Dummy / demo data (no real QHomemart data)
-├── workflows/    ← Orchestration layer
-├── logs/         ← Interaction log snapshots
-├── docs/         ← Project documentation
-├── components/   ← Shared React components
-└── hooks/        ← Custom React hooks
-```
-
-### Agents
-
-| Agent | File | Role |
-|-------|------|------|
-| Customer Triage | `agents/customer-triage-agent.ts` | Classify problem, set urgency |
-| Context & Risk | `agents/context-risk-agent.ts` | Identify risk factors, score severity |
-| Product Match | `agents/product-match-agent.ts` | Rank relevant products |
-| Service Match | `agents/service-match-agent.ts` | Recommend optional service guidance if available |
-| Bundle Strategy | `agents/bundle-strategy-agent.ts` | Compose solution package |
-| Staff & Insight | `agents/staff-insight-agent.ts` | Generate briefing + business signal |
-
-Full pipeline diagram → [`docs/02-agent-workflow.md`](./docs/02-agent-workflow.md)
-
----
-
-## How to Run
+Run dari folder repository root:
 
 ```bash
-# 1. Install dependencies
+npm install --prefix mas
+npm --prefix mas run build
+npm --prefix mas run dev
+```
+
+Run dari folder `mas/`:
+
+```bash
 npm install
-
-# 2. Verify the build (TypeScript check)
 npm run build
-
-# 3. Start the development server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open:
 
-No API keys, no environment variables, no database setup required.
+- http://localhost:3000/
+- http://localhost:3000/operations
 
-Detailed guide → [`docs/03-reproducibility.md`](./docs/03-reproducibility.md)
+## Project Overview
 
----
+MAS QHomemart menunjukkan bagaimana multi-agent workflow dapat membantu internal retail operation tanpa menjadikan AI sebagai pusat produk. Dashboard bersifat business-first: inquiry pelanggan, paket, layanan, follow-up, risiko operasional, dan keputusan stakeholder ditampilkan lebih dulu. AI automation dan agent detail berada di modul khusus.
 
-## Documentation
+## Problem Statement
 
-| File | Contents |
-|------|----------|
-| [`docs/01-architecture.md`](./docs/01-architecture.md) | Folder map, architectural principles, scope |
-| [`docs/02-agent-workflow.md`](./docs/02-agent-workflow.md) | Agent sequence, data flow diagram |
-| [`docs/03-reproducibility.md`](./docs/03-reproducibility.md) | How to run, how to replace demo data |
-| [`docs/04-evaluation.md`](./docs/04-evaluation.md) | Competition criteria mapping |
+Pelanggan sering menjelaskan masalah rumah dalam bahasa natural, bukan dalam kategori produk. Staff dan manajemen perlu mengubah cerita tersebut menjadi:
 
----
+- demand cluster
+- risiko operasional atau risiko keselamatan
+- rekomendasi produk dan paket
+- arahan layanan opsional
+- ringkasan staff
+- business insight
+- audit trail
 
-## Safety Limitations
+## Business Impact
 
-> ⚠️ **This prototype is NOT connected to any real QHomemart production system.**
+- CEO dapat melihat risiko bisnis dan prioritas keputusan.
+- Operations Manager dapat melihat follow-up, SLA, PIC, dan alert.
+- Product Manager dapat melihat demand cluster, package opportunity, dan dependency stok/layanan.
+- Technical Reviewer dapat melihat agent workflow, fallback, reasoning metadata, dan auditability.
 
-The following are explicitly out of scope:
+## Multi-Agent Architecture
 
-- ❌ No real QHomemart product catalog or live inventory
-- ❌ No real QHomemart pricing. The prototype uses simple budget tiers such as Hemat or Sedang for demonstration.
-- ❌ No real stock level tracking
-- ❌ No real WhatsApp API or messaging workflow
-- ❌ No payment processing
-- ❌ No user authentication or customer accounts
-- ❌ No backend database or persistent storage
-- ❌ No external API calls
+Agent modules berada di `agents/`. Workflow orchestration berada di `workflows/bathroom-safety-workflow.ts`.
 
-Demo data is being organized in the `data/` folder as fictional TypeScript objects for demonstration purposes.
+| Agent | File | Role |
+| --- | --- | --- |
+| Customer Triage Agent | `agents/customer-triage-agent.ts` | Mengubah bahasa pelanggan menjadi structured triage output. LLM-assisted bila konfigurasi tersedia; deterministic fallback selalu ada. |
+| Context & Risk Agent | `agents/context-risk-agent.ts` | Menentukan risiko, severity, dan prioritas. |
+| Product Match Agent | `agents/product-match-agent.ts` | Mencocokkan risiko dengan product mapping lokal. |
+| Service Match Agent | `agents/service-match-agent.ts` | Memberi arahan layanan opsional tanpa mengklaim availability live. |
+| Bundle Strategy Agent | `agents/bundle-strategy-agent.ts` | Menyusun rekomendasi paket berlapis. |
+| Staff & Insight Agent | `agents/staff-insight-agent.ts` | Membuat staff summary dan business insight. |
+| Decision Synthesizer / Arbitration Agent | `agents/decision-synthesizer-agent.ts` | Membandingkan output agent, mendeteksi konflik, memilih rekomendasi akhir, menghitung confidence, dan menentukan human review. |
 
----
+## Workflow Orchestration
+
+Setiap skenario melewati urutan yang sama:
+
+Customer input -> Customer Triage -> Context & Risk -> Product Match -> Service Match -> Bundle Strategy -> Staff & Insight -> Decision Synthesizer -> Audit Log
+
+Setiap agent output dibungkus dengan reasoning metadata:
+
+- agentName
+- inputSummary
+- outputSummary
+- confidence
+- reasoningBasis
+- decisionCriteria
+- rejectedAlternatives
+- requiresHumanReview
+- structuredOutput
+
+## Interaction Log
+
+Interaction log menyimpan:
+
+- step number
+- source agent
+- target agent
+- input
+- output
+- confidence
+- reasoning basis
+- decision dependency
+- timestamp reproducible
+- fallback status
+- human review status
+
+Log ini ditampilkan di Operations Dashboard pada modul `Audit Log`.
+
+## Supported Scenarios
+
+Current scope mendukung minimal dua scenario seed:
+
+- Bathroom safety / elderly safety: customer membutuhkan solusi untuk `kamar mandi licin`.
+- Plumbing leak: customer membutuhkan arahan untuk `kebocoran pipa dapur`.
+
+Keduanya menggunakan workflow multi-agent yang sama.
+
+## Routes
+
+- `/`: public home / customer-facing entry.
+- `/operations`: internal operations dashboard untuk QHomemart Retail OS.
 
 ## Hybrid AI Mode
 
-The system supports optional LLM-assisted triage via Sumopod (OpenAI-compatible API).
-By default, the demo always uses deterministic fallback for full reproducibility.
+Customer Triage Agent memiliki jalur LLM-assisted via provider yang dapat dikonfigurasi. Jika env tidak tersedia atau output tidak valid, workflow memakai deterministic fallback.
 
-| Mode | Env vars required | Default |
-|------|-------------------|---------|
-| Deterministic fallback | None | Yes |
-| LLM-assisted triage (Sumopod) | `SUMOPOD_API_KEY`, `SUMOPOD_BASE_URL`, `SUMOPOD_MODEL` | No |
+Downstream agents tetap deterministic untuk menjaga stabilitas, reproducibility, governance, dan auditability.
 
-Recommended model: `gemini/gemini-2.0-flash`
+Env opsional:
 
-To enable LLM mode locally, create `mas/.env.local` (gitignored):
 ```bash
 SUMOPOD_API_KEY=your_key_here
 SUMOPOD_BASE_URL=https://ai.sumopod.com/v1
 SUMOPOD_MODEL=gemini/gemini-2.0-flash
 ```
 
-See `docs/05-hybrid-ai-mode.md` for full architecture, fallback behavior, and test instructions.
+Tanpa env tersebut, project tetap buildable dan runnable.
 
-Screen 8 shows a badge indicating which mode was used in the current run.
+## Actual Project Structure
 
----
+```text
+mas/
+├── agents/
+├── ai/
+├── app/
+├── components/
+├── data/
+├── docs/
+├── hooks/
+├── lib/
+├── scripts/
+├── styles/
+├── types/
+└── workflows/
+```
 
-## Project Status
+## Known Limitations
 
-**Phase: Real Sumopod LLM Triage v1**
-
-- UI frozen: MAS QHomemart UI v1.0 with 8 screens
-- Agent-oriented folder structure created
-- Full agent reasoning logic implemented (deterministic)
-- UI-to-agent workflow connection done
-- Sample interaction log generated from workflow
-- Shared types in types/mas-types.ts
-- Hybrid AI triage architecture (ai/ layer) with real Sumopod call
-- Deterministic fallback always active by default (no env vars needed)
-- AI mode badge on Screen 8
-- Developer test script: scripts/test-sumopod-triage.ts
-- Documentation updated (docs/05-hybrid-ai-mode.md)
-- Real QHomemart data integration, future phase
-
----
-
-*MAS QHomemart — Prototype. Not for production use.*
+- Tidak menggunakan real QHomemart catalog.
+- Tidak ada live stock, live price, WhatsApp API, payment, auth, database, atau supplier sync.
+- Service guidance belum terhubung ke booking atau availability live.
+- Model routing untuk semua agent selain Customer Triage adalah routing preview.
+- Dashboard menggunakan sample data untuk current scope dan tidak mengklaim production-ready integration.

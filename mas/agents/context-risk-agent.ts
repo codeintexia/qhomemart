@@ -6,7 +6,7 @@
  * Each risk is tagged with severity and priority order so downstream agents
  * can rank their recommendations accordingly.
  *
- * Prototype: deterministic for the bathroom-safety demo scenario.
+ * Current scope: deterministic for supported demo scenarios.
  * Not connected to real QHomemart systems.
  */
 
@@ -23,7 +23,40 @@ import type { TriageOutput, RiskOutput, RiskItem } from "@/types/mas-types";
  * @returns RiskOutput containing all identified risks
  */
 export function runContextRiskAgent(triageOutput: TriageOutput): RiskOutput {
-  void triageOutput; // used by downstream agents via workflow
+  if (triageOutput.problemCategory === "Kebocoran pipa dapur") {
+    const risks: RiskItem[] = [
+      {
+        id: "active-water-leak",
+        label: "Rembesan air aktif",
+        severity: "Tinggi",
+        reason:
+          "Kebocoran aktif dapat memperluas kerusakan kabinet, lantai, dan area sekitar pipa.",
+        priorityOrder: 1,
+      },
+      {
+        id: "water-damage",
+        label: "Risiko kerusakan material",
+        severity: "Tinggi",
+        reason:
+          "Air yang dibiarkan merembes dapat merusak kayu, finishing, dan sambungan bawah sink.",
+        priorityOrder: 2,
+      },
+      {
+        id: "unclear-fitting-size",
+        label: "Ukuran fitting belum jelas",
+        severity: "Sedang",
+        reason:
+          "Rekomendasi produk plumbing perlu memvalidasi ukuran pipa, seal, atau fitting yang tepat.",
+        priorityOrder: 3,
+      },
+    ];
+
+    return {
+      risks,
+      riskNarrative:
+        "Risiko utama adalah rembesan aktif dan potensi kerusakan material. Staff perlu memvalidasi jenis pipa dan ukuran fitting sebelum customer membeli komponen plumbing.",
+    };
+  }
 
   const risks: RiskItem[] = [
     {

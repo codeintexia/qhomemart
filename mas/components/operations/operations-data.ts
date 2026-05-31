@@ -301,6 +301,25 @@ export const agentFleet: AgentDefinition[] = [
     downstreamConsumer: "Dashboard, staff selling flow, future CMS modules.",
     evidenceGenerated: "Business opportunity, marketing signal, and staff summary.",
   },
+  {
+    id: "decision-synthesizer",
+    name: "Decision Synthesizer / Arbitration Agent",
+    shortName: "Decision Synthesizer",
+    status: "active",
+    criticality: "Core",
+    modelUsed: "Deterministic arbitration policy",
+    costTier: "Low",
+    fallbackBehavior: "Flags conflict or uncertainty for human review",
+    lastRunStatus: "Final recommendation synthesized with confidence and review policy",
+    outputType: "Final decision, rationale, confidence, review requirement",
+    role: "Receives all previous agent outputs, compares recommendations, detects conflicts, and selects the final auditable recommendation.",
+    businessPurpose: "Prevents the dashboard from presenting fragmented agent outputs as a final decision without arbitration.",
+    inputContract: "Triage, risks, product matches, service guidance, bundle output, staff insight, reasoning metadata.",
+    reasoningTask: "Check consistency, resolve conflicts, calculate confidence, and decide whether human review is required.",
+    outputContract: "finalRecommendation, rationale, confidence, conflictsDetected, humanReviewRequired, recommendedNextAction.",
+    downstreamConsumer: "Audit Log, Staff Follow-up, stakeholder decision queue.",
+    evidenceGenerated: "Decision rationale, rejected alternatives, conflict handling, confidence, and review reason.",
+  },
 ];
 
 export const workflowSteps = agentFleet.map((agent, index) => ({
@@ -370,7 +389,7 @@ export const fallbackPolicies: FallbackPolicy[] = [
   {
     path: "If JSON invalid -> validation fallback",
     riskPrevented: "Prevents malformed model output from entering downstream matching.",
-    continuityBenefit: "Stable typed contract continues through all six agents.",
+    continuityBenefit: "Stable typed contract continues through all workflow agents.",
     auditabilityBenefit: "Invalid candidate can be isolated from canonical workflow state.",
   },
   {

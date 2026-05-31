@@ -49,6 +49,19 @@ const issueRows = [
 
 export function LogsAudit({ workflow }: { workflow: WorkflowRunResult }) {
   const selectedCase = workflow.staffSummary || "Contoh kasus terpilih tersedia untuk detail evidence.";
+  const interactionRows = workflow.interactionLog.map((entry) => [
+    String(entry.stepNumber),
+    entry.sourceAgent,
+    entry.targetAgent ?? "Final output",
+    entry.input,
+    entry.output,
+    `${Math.round(entry.confidence * 100)}%`,
+    entry.reasoningBasis.join("; "),
+    entry.decisionDependency,
+    entry.timestamp,
+    entry.fallbackStatus,
+    entry.humanReviewStatus,
+  ]);
 
   return (
     <section className="space-y-6">
@@ -86,6 +99,13 @@ export function LogsAudit({ workflow }: { workflow: WorkflowRunResult }) {
         minWidthClass="min-w-[760px]"
         headers={["Filter", "Current Value"]}
         rows={filterRows}
+      />
+
+      <DataTable
+        title="Workflow Interaction Log"
+        minWidthClass="min-w-[1900px]"
+        headers={["Step", "Source Agent", "Target Agent", "Input", "Output", "Confidence", "Reasoning Basis", "Decision Dependency", "Timestamp", "Fallback", "Human Review"]}
+        rows={interactionRows}
       />
 
       <DataTable

@@ -23,7 +23,7 @@
  *     For future use when an LLM provider integration is implemented.
  *     Not used by the public demo UI.
  *
- * Prototype only. Not connected to real QHomemart production systems.
+ * Current scope only. Not connected to real QHomemart production systems.
  */
 
 import { runCustomerTriageAgent, runHybridCustomerTriageAgent } from "@/agents/customer-triage-agent";
@@ -32,12 +32,15 @@ import { runProductMatchAgent } from "@/agents/product-match-agent";
 import { runServiceMatchAgent } from "@/agents/service-match-agent";
 import { runBundleStrategyAgent } from "@/agents/bundle-strategy-agent";
 import { runStaffInsightAgent } from "@/agents/staff-insight-agent";
+import { runDecisionSynthesizerAgent } from "@/agents/decision-synthesizer-agent";
 import { createInteractionLogEntry } from "@/workflows/interaction-logger";
 import { getLLMTriageAvailability } from "@/ai/llm-triage-adapter";
 import { demoProducts } from "@/data/products";
 import { demoServices } from "@/data/services";
 import { bundleRules } from "@/data/bundle-rules";
+import { demoScenario, plumbingLeakScenario } from "@/data/demo-scenario";
 import type {
+  AgentOutput,
   CustomerInput,
   WorkflowRunResult,
   AIExecutionMetadata,
@@ -48,19 +51,52 @@ import type {
 // Default demo input
 // ---------------------------------------------------------------------------
 
-const DEFAULT_INPUT: CustomerInput = {
-  userStory:
-    "Ibu saya sudah lansia dan beberapa kali hampir terpeleset di kamar mandi.",
-  selectedChips: [
-    "Kamar mandi licin",
-    "Lantai sering basah",
-    "Pernah hampir terpeleset",
-    "Kurang pegangan",
-    "Cahaya kurang terang",
-    "Budget terbatas",
-  ],
-  buyingPreference: "Hemat dulu",
+const DEFAULT_INPUT: CustomerInput = demoScenario;
+
+const SCENARIO_REGISTRY = {
+  "demo-bathroom-safety-001": {
+    title: "Keamanan Kamar Mandi untuk Lansia",
+    input: demoScenario,
+  },
+  "demo-plumbing-leak-001": {
+    title: "Kebocoran Pipa Dapur",
+    input: plumbingLeakScenario,
+  },
 };
+
+function createAgentOutput<T extends Record<string, unknown>>({
+  agentName,
+  inputSummary,
+  outputSummary,
+  confidence,
+  reasoningBasis,
+  decisionCriteria,
+  rejectedAlternatives,
+  requiresHumanReview,
+  structuredOutput,
+}: AgentOutput<T>): AgentOutput<T> {
+  return {
+    agentName,
+    inputSummary,
+    outputSummary,
+    confidence,
+    reasoningBasis,
+    decisionCriteria,
+    rejectedAlternatives,
+    requiresHumanReview,
+    structuredOutput,
+  };
+}
+
+function resolveScenario(input: CustomerInput) {
+  const matched = Object.entries(SCENARIO_REGISTRY).find(([, scenario]) =>
+    scenario.input.userStory === input.userStory
+  );
+
+  return matched
+    ? { id: matched[0], title: matched[1].title }
+    : { id: "custom-local-scenario", title: "Custom Local Scenario" };
+}
 
 // ---------------------------------------------------------------------------
 // Shared pipeline — called by both sync and async variants
@@ -72,62 +108,143 @@ function buildWorkflowResult(
   aiMeta: AIExecutionMetadata
 ): WorkflowRunResult {
   const interactionLog = [];
+  const agentOutputs: AgentOutput<Record<string, unknown>>[] = [];
 
   // Step 1 — Customer Triage Agent
   const aiModeLabel =
     aiMeta.aiMode === "llm-assisted" ? "LLM-assisted triage" : "deterministic fallback";
+  const triageAgentOutput = createAgentOutput({
+    agentName: "Customer Triage Agent",
+    inputSummary: `Cerita pelanggan, chips kondisi, dan preferensi beli.`,
+    outputSummary: `Masalah: ${triage.problemCategory}. Ruang: ${triage.primarySpace}. Pengguna utama: ${triage.primaryUser}.`,
+    confidence: aiMeta.aiMode === "llm-assisted" ? 0.86 : 0.82,
+    reasoningBasis: [
+      "Natural language customer story",
+      "Selected condition chips",
+      "Semantic normalization into canonical workflow state",
+    ],
+    decisionCriteria: ["Problem category", "Primary space", "Primary user", "Budget constraint"],
+    rejectedAlternatives:
+      triage.problemCategory === "Kebocoran pipa dapur"
+        ? ["Bathroom safety bundle", "Paint consultation"]
+        : ["General renovation", "Plumbing leak handling"],
+    requiresHumanReview: false,
+    structuredOutput: {
+      ...(triage as unknown as Record<string, unknown>),
+      aiMeta,
+    },
+  });
+  agentOutputs.push(triageAgentOutput);
   interactionLog.push(
     createInteractionLogEntry({
       stepNumber: 1,
       agentName: "Customer Triage Agent",
+      sourceAgent: "Customer",
+      targetAgent: "Context & Risk Agent",
       inputSummary: `Cerita: "${customerInput.userStory}" | Chips: ${customerInput.selectedChips.join(", ")} | Preferensi: ${customerInput.buyingPreference}`,
       outputSummary: `Masalah: ${triage.problemCategory}. Pengguna utama: ${triage.primaryUser}. Preferensi: ${customerInput.buyingPreference}. Mode: ${aiModeLabel}.`,
-      structuredOutput: {
-        ...(triage as unknown as Record<string, unknown>),
-        aiMeta,
-      },
+      confidence: triageAgentOutput.confidence,
+      reasoningBasis: triageAgentOutput.reasoningBasis,
+      decisionDependency: "Defines canonical demand state for all downstream agents.",
+      fallbackStatus: aiMeta.aiMode === "deterministic-fallback" ? "Deterministic fallback used" : "LLM-assisted triage used",
+      humanReviewStatus: "Not required at triage step",
+      structuredOutput: triageAgentOutput.structuredOutput,
     })
   );
 
   // Step 2 — Context & Risk Agent
   const risks = runContextRiskAgent(triage);
   const highPriorityRisks = risks.risks.filter((r) => r.severity === "Tinggi");
+  const riskAgentOutput = createAgentOutput({
+    agentName: "Context & Risk Agent",
+    inputSummary: `Canonical problem "${triage.problemCategory}" for ${triage.primaryUser}.`,
+    outputSummary: `${risks.risks.length} risiko teridentifikasi, ${highPriorityRisks.length} risiko tinggi.`,
+    confidence: 0.84,
+    reasoningBasis: ["Rule-based risk mapping", "Severity ordering", "Problem-to-risk taxonomy"],
+    decisionCriteria: ["Safety severity", "Operational urgency", "Downstream product dependency"],
+    rejectedAlternatives: ["Treat as generic inquiry without risk order"],
+    requiresHumanReview: highPriorityRisks.length >= 2,
+    structuredOutput: risks as unknown as Record<string, unknown>,
+  });
+  agentOutputs.push(riskAgentOutput);
   interactionLog.push(
     createInteractionLogEntry({
       stepNumber: 2,
       agentName: "Context & Risk Agent",
+      sourceAgent: "Customer Triage Agent",
+      targetAgent: "Product Match Agent",
       inputSummary: `TriageOutput: kategori "${triage.problemCategory}", pengguna "${triage.primaryUser}"`,
       outputSummary: `Risiko tinggi: ${highPriorityRisks.map((r) => r.label).join(" dan ")}. Risiko sedang: ${risks.risks.filter((r) => r.severity === "Sedang").map((r) => r.label).join(" dan ")}.`,
-      structuredOutput: risks as unknown as Record<string, unknown>,
+      confidence: riskAgentOutput.confidence,
+      reasoningBasis: riskAgentOutput.reasoningBasis,
+      decisionDependency: "Ranks risks so product and service agents can prioritize recommendations.",
+      humanReviewStatus: riskAgentOutput.requiresHumanReview ? "Recommended for high-risk case" : "Not required",
+      structuredOutput: riskAgentOutput.structuredOutput,
     })
   );
 
   // Step 3 — Product Match Agent
   const products = runProductMatchAgent(triage, risks, demoProducts);
   const totalProducts = products.sectionA.length + products.sectionB.length;
+  const productAgentOutput = createAgentOutput({
+    agentName: "Product Match Agent",
+    inputSummary: `${risks.risks.length} risk items matched against local product mapping.`,
+    outputSummary: `${totalProducts} produk cocok: ${products.sectionA.length} prioritas dan ${products.sectionB.length} pendukung.`,
+    confidence: totalProducts > 0 ? 0.86 : 0.55,
+    reasoningBasis: ["Risk-addressed product mapping", "Priority section rules", "Local demo catalog"],
+    decisionCriteria: ["Risk addressed", "Priority", "Budget tier", "Bundle section"],
+    rejectedAlternatives: ["Products with unrelated riskAddressed values"],
+    requiresHumanReview: totalProducts === 0,
+    structuredOutput: {
+      sectionACount: products.sectionA.length,
+      sectionBCount: products.sectionB.length,
+      products: products as unknown as Record<string, unknown>,
+    },
+  });
+  agentOutputs.push(productAgentOutput);
   interactionLog.push(
     createInteractionLogEntry({
       stepNumber: 3,
       agentName: "Product Match Agent",
+      sourceAgent: "Context & Risk Agent",
+      targetAgent: "Service Match Agent",
       inputSummary: `RiskOutput: ${risks.risks.length} risiko teridentifikasi`,
       outputSummary: `Kategori produk cocok: anti-slip, pegangan kamar mandi, pencahayaan, rak rendah. ${totalProducts} produk dikelompokkan ke dalam 2 seksi.`,
-      structuredOutput: {
-        sectionACount: products.sectionA.length,
-        sectionBCount: products.sectionB.length,
-        products: products as unknown as Record<string, unknown>,
-      },
+      confidence: productAgentOutput.confidence,
+      reasoningBasis: productAgentOutput.reasoningBasis,
+      decisionDependency: "Provides product candidates for bundle composition.",
+      humanReviewStatus: productAgentOutput.requiresHumanReview ? "Required because no product match exists" : "Not required",
+      structuredOutput: productAgentOutput.structuredOutput,
     })
   );
 
   // Step 4 — Service Match Agent
   const services = runServiceMatchAgent(triage, risks, demoServices);
+  const serviceAgentOutput = createAgentOutput({
+    agentName: "Service Match Agent",
+    inputSummary: `Problem "${triage.problemCategory}" with ${risks.risks.length} risk items.`,
+    outputSummary: `${services.sectionC.length} arahan layanan opsional dibuat dengan catatan ketersediaan.`,
+    confidence: 0.74,
+    reasoningBasis: ["Service guidance mapping", "Installation/support dependency", "Availability disclaimer"],
+    decisionCriteria: ["Need for installation", "Need for staff validation", "Service availability unknown"],
+    rejectedAlternatives: ["Claim live service booking", "Guarantee technician availability"],
+    requiresHumanReview: services.sectionC.length > 0,
+    structuredOutput: services as unknown as Record<string, unknown>,
+  });
+  agentOutputs.push(serviceAgentOutput);
   interactionLog.push(
     createInteractionLogEntry({
       stepNumber: 4,
       agentName: "Service Match Agent",
+      sourceAgent: "Product Match Agent",
+      targetAgent: "Bundle Strategy Agent",
       inputSummary: `RiskOutput: ${risks.risks.length} risiko, produk Section A memerlukan pemasangan`,
       outputSummary: `Layanan terkait: cek pemasangan atau renovasi ringan jika diperlukan.`,
-      structuredOutput: services as unknown as Record<string, unknown>,
+      confidence: serviceAgentOutput.confidence,
+      reasoningBasis: serviceAgentOutput.reasoningBasis,
+      decisionDependency: "Adds optional service guidance without claiming live service availability.",
+      humanReviewStatus: "Staff validation recommended before service promise",
+      structuredOutput: serviceAgentOutput.structuredOutput,
     })
   );
 
@@ -138,25 +255,105 @@ function buildWorkflowResult(
     customerInput.buyingPreference,
     bundleRules
   );
+  const bundleAgentOutput = createAgentOutput({
+    agentName: "Bundle Strategy Agent",
+    inputSummary: `${totalProducts} products, ${services.sectionC.length} service guidance entries, preference "${customerInput.buyingPreference}".`,
+    outputSummary: `Bundle "${bundle.bundleTitle}" disusun dalam ${bundle.sections.length} sections.`,
+    confidence: 0.83,
+    reasoningBasis: ["Bundle section rules", "Buying preference", "Product priority order"],
+    decisionCriteria: ["Section A essentials first", "Section B support items", "Section C optional service guidance"],
+    rejectedAlternatives: ["Single flat product list", "Service-first recommendation"],
+    requiresHumanReview: false,
+    structuredOutput: bundle as unknown as Record<string, unknown>,
+  });
+  agentOutputs.push(bundleAgentOutput);
   interactionLog.push(
     createInteractionLogEntry({
       stepNumber: 5,
       agentName: "Bundle Strategy Agent",
+      sourceAgent: "Service Match Agent",
+      targetAgent: "Staff & Insight Agent",
       inputSummary: `ProductMatchOutput: ${totalProducts} produk, ServiceMatchOutput: ${services.sectionC.length} layanan`,
       outputSummary: `Menyusun solusi bertingkat: mulai dari yang paling perlu, tambahan yang disarankan, dan opsi bantuan jasa. ${bundle.sections.length} seksi disusun.`,
-      structuredOutput: bundle as unknown as Record<string, unknown>,
+      confidence: bundleAgentOutput.confidence,
+      reasoningBasis: bundleAgentOutput.reasoningBasis,
+      decisionDependency: "Creates the customer-facing package structure used by staff and synthesis.",
+      structuredOutput: bundleAgentOutput.structuredOutput,
     })
   );
 
   // Step 6 — Staff & Insight Agent
   const staffInsight = runStaffInsightAgent(triage, risks, products, services, bundle);
+  const staffAgentOutput = createAgentOutput({
+    agentName: "Staff & Insight Agent",
+    inputSummary: "All upstream outputs: triage, risks, products, services, bundle.",
+    outputSummary: `Staff summary and business insight generated for "${staffInsight.businessInsight.bundleOpportunity}".`,
+    confidence: 0.81,
+    reasoningBasis: ["Upstream workflow outputs", "Business insight mapping", "Staff handoff requirements"],
+    decisionCriteria: ["Staff readability", "Commercial opportunity", "Marketing signal", "Operational handoff"],
+    rejectedAlternatives: ["Technical-only explanation", "Customer-facing claim without staff validation"],
+    requiresHumanReview: true,
+    structuredOutput: staffInsight as unknown as Record<string, unknown>,
+  });
+  agentOutputs.push(staffAgentOutput);
   interactionLog.push(
     createInteractionLogEntry({
       stepNumber: 6,
       agentName: "Staff & Insight Agent",
+      sourceAgent: "Bundle Strategy Agent",
+      targetAgent: "Decision Synthesizer / Arbitration Agent",
       inputSummary: `Semua output agen sebelumnya: triage, risks, products, services, bundle`,
       outputSummary: `Membuat ringkasan untuk staf dan insight peluang paket untuk QHomemart.`,
-      structuredOutput: staffInsight as unknown as Record<string, unknown>,
+      confidence: staffAgentOutput.confidence,
+      reasoningBasis: staffAgentOutput.reasoningBasis,
+      decisionDependency: "Feeds operational summary and business signals into final arbitration.",
+      humanReviewStatus: "Staff review recommended before customer follow-up",
+      structuredOutput: staffAgentOutput.structuredOutput,
+    })
+  );
+
+  // Step 7 — Decision Synthesizer / Arbitration Agent
+  const decision = runDecisionSynthesizerAgent({
+    triage,
+    risks,
+    products,
+    services,
+    bundle,
+    staffInsight,
+  });
+  const decisionAgentOutput = createAgentOutput({
+    agentName: "Decision Synthesizer / Arbitration Agent",
+    inputSummary: "All previous agent outputs and reasoning metadata.",
+    outputSummary: `${decision.finalRecommendation}. Confidence ${(decision.confidence * 100).toFixed(0)}%.`,
+    confidence: decision.confidence,
+    reasoningBasis: [
+      "Cross-agent consistency check",
+      "Conflict detection",
+      "Human review policy",
+      "Final recommendation arbitration",
+    ],
+    decisionCriteria: ["Safety or damage risk", "Product match availability", "Service uncertainty", "Staff review need"],
+    rejectedAlternatives: decision.conflictsDetected.length > 0
+      ? ["Auto-approve without staff review"]
+      : ["Escalate without operational reason"],
+    requiresHumanReview: decision.humanReviewRequired,
+    structuredOutput: decision as unknown as Record<string, unknown>,
+  });
+  agentOutputs.push(decisionAgentOutput);
+  interactionLog.push(
+    createInteractionLogEntry({
+      stepNumber: 7,
+      agentName: "Decision Synthesizer / Arbitration Agent",
+      sourceAgent: "Staff & Insight Agent",
+      targetAgent: "Staff Follow-up / Audit Log",
+      inputSummary: "Outputs from Customer Triage, Context & Risk, Product Match, Service Match, Bundle Strategy, and Staff & Insight agents.",
+      outputSummary: decision.finalRecommendation,
+      confidence: decisionAgentOutput.confidence,
+      reasoningBasis: decisionAgentOutput.reasoningBasis,
+      decisionDependency: "Final auditable recommendation and human-review instruction.",
+      fallbackStatus: decision.conflictsDetected.length > 0 ? "Conflict handled by arbitration policy" : "No fallback triggered",
+      humanReviewStatus: decision.humanReviewRequired ? decision.reviewReason : "Not required",
+      structuredOutput: decisionAgentOutput.structuredOutput,
     })
   );
 
@@ -170,13 +367,15 @@ function buildWorkflowResult(
     businessInsightGenerated:
       staffInsight.businessInsight.businessOpportunities.length > 0,
     agentStepsLogged: interactionLog.length,
+    decisionSynthesized: decision.finalRecommendation.length > 0,
     triageAiMode: aiMeta.aiMode,
   };
+  const scenario = resolveScenario(customerInput);
 
   return {
     scenario: {
-      id: "demo-bathroom-safety-001",
-      title: "Keamanan Kamar Mandi untuk Lansia",
+      id: scenario.id,
+      title: scenario.title,
       userStory: customerInput.userStory,
       selectedChips: customerInput.selectedChips,
       buyingPreference: customerInput.buyingPreference,
@@ -188,10 +387,12 @@ function buildWorkflowResult(
     bundle,
     staffSummary: staffInsight.staffSummary,
     businessInsight: staffInsight.businessInsight,
+    decision,
+    agentOutputs,
     interactionLog,
     metrics,
     technicalNote:
-      "Data demo menggunakan dummy data modular. Katalog produk, layanan, promo, stok, dan kanal WhatsApp dapat diganti dengan data QHomemart pada fase integrasi. Prototype ini belum terhubung ke sistem produksi QHomemart.",
+      "Data current scope menggunakan sample data modular. Katalog produk, layanan, promo, stok, dan kanal WhatsApp dapat diganti dengan data QHomemart pada fase integrasi. Sistem ini belum terhubung ke sistem produksi QHomemart.",
     aiMeta,
   };
 }
@@ -216,6 +417,17 @@ export function runBathroomSafetyWorkflow(
   const triage = runCustomerTriageAgent(customerInput);
   const aiMeta = getLLMTriageAvailability();
   return buildWorkflowResult(customerInput, triage, aiMeta);
+}
+
+export function runPlumbingLeakWorkflow(): WorkflowRunResult {
+  return runBathroomSafetyWorkflow(plumbingLeakScenario);
+}
+
+export function runAllDemoWorkflows(): WorkflowRunResult[] {
+  return [
+    runBathroomSafetyWorkflow(demoScenario),
+    runPlumbingLeakWorkflow(),
+  ];
 }
 
 // ---------------------------------------------------------------------------

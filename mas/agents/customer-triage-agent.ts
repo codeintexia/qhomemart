@@ -18,7 +18,7 @@
  *     Otherwise falls back to runCustomerTriageAgent(). Never throws.
  *     Always returns HybridTriageOutput including AIExecutionMetadata.
  *
- * Prototype: not connected to real QHomemart systems.
+ * Current scope: not connected to real QHomemart systems.
  * Not a production autonomous AI system.
  */
 
@@ -49,12 +49,26 @@ export type { CustomerInput };
 export function runCustomerTriageAgent(input: CustomerInput): TriageOutput {
   // Derive constraints from selected chips and buying preference
   const constraints: string[] = ["mudah dipahami staf"];
+  const text = `${input.userStory} ${input.selectedChips.join(" ")}`.toLowerCase();
 
   if (
     input.selectedChips.includes("Budget terbatas") ||
     input.buyingPreference === "Hemat dulu"
   ) {
     constraints.unshift("budget terbatas", "mulai dari barang paling penting");
+  }
+
+  if (text.includes("pipa") || text.includes("bocor") || text.includes("dapur")) {
+    return {
+      problemCategory: "Kebocoran pipa dapur",
+      primarySpace: "Dapur",
+      primaryUser: "Pemilik rumah",
+      constraints,
+      normalizedNeed:
+        "Solusi kebocoran pipa dapur dengan prioritas menghentikan rembesan dan mencegah kerusakan lanjutan.",
+      reasoning:
+        "Cerita pelanggan menunjukkan kebocoran pipa di area dapur. Fokus awal adalah menghentikan rembesan, melindungi area sekitar, dan menyiapkan arahan staff bila perlu pengecekan instalasi.",
+    };
   }
 
   return {

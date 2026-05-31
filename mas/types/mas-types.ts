@@ -5,7 +5,7 @@
  * Import from this file to avoid circular dependencies and keep types consistent
  * across the entire multi-agent pipeline.
  *
- * Prototype only — not connected to real QHomemart production systems.
+ * Current scope — not connected to real QHomemart production systems.
  */
 
 // ---------------------------------------------------------------------------
@@ -232,6 +232,40 @@ export interface StaffInsightOutput {
 }
 
 // ---------------------------------------------------------------------------
+// Agent Reasoning & Arbitration
+// ---------------------------------------------------------------------------
+
+/** Standard reasoning metadata attached to every agent output. */
+export interface AgentReasoningMetadata {
+  agentName: string;
+  inputSummary: string;
+  outputSummary: string;
+  confidence: number;
+  reasoningBasis: string[];
+  decisionCriteria: string[];
+  rejectedAlternatives: string[];
+  requiresHumanReview: boolean;
+}
+
+/** Generic agent output envelope used by the workflow audit trail. */
+export interface AgentOutput<TStructuredOutput> extends AgentReasoningMetadata {
+  structuredOutput: TStructuredOutput;
+}
+
+/** Output of the Decision Synthesizer / Arbitration Agent. */
+export interface DecisionSynthesizerOutput {
+  finalRecommendation: string;
+  selectedBundleTitle: string;
+  rationale: string;
+  confidence: number;
+  conflictsDetected: string[];
+  conflictResolution: string[];
+  humanReviewRequired: boolean;
+  reviewReason: string;
+  recommendedNextAction: string;
+}
+
+// ---------------------------------------------------------------------------
 // Hybrid AI Mode Types
 // ---------------------------------------------------------------------------
 
@@ -292,8 +326,18 @@ export interface HybridTriageOutput extends TriageOutput {
 export interface InteractionLogStep {
   stepNumber: number;
   agentName: string;
+  sourceAgent: string;
+  targetAgent?: string;
   inputSummary: string;
   outputSummary: string;
+  input: string;
+  output: string;
+  confidence: number;
+  reasoningBasis: string[];
+  decisionDependency: string;
+  timestamp: string;
+  fallbackStatus: string;
+  humanReviewStatus: string;
   structuredOutput: Record<string, unknown>;
 }
 
@@ -311,6 +355,7 @@ export interface WorkflowMetrics {
   staffSummaryGenerated: boolean;
   businessInsightGenerated: boolean;
   agentStepsLogged: number;
+  decisionSynthesized: boolean;
   /** AI mode used by the triage step in this run. */
   triageAiMode: AIMode;
 }
@@ -335,6 +380,8 @@ export interface WorkflowRunResult {
   bundle: BundleOutput;
   staffSummary: string;
   businessInsight: BusinessInsight;
+  decision: DecisionSynthesizerOutput;
+  agentOutputs: AgentOutput<Record<string, unknown>>[];
   interactionLog: InteractionLogStep[];
   metrics: WorkflowMetrics;
   technicalNote: string;

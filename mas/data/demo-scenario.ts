@@ -1,8 +1,7 @@
 /**
- * Demo Scenario — Bathroom Safety for Older Adults / Caregivers
+ * Demo Scenarios — Selected Retail Operating Cases
  *
- * Defines the canonical customer input used as the default seed for the
- * MAS QHomemart bathroom-safety demo workflow.
+ * Defines customer input seeds used by the MAS QHomemart workflow.
  *
  * All data is fictional. Not connected to real QHomemart systems.
  */
@@ -27,4 +26,22 @@ export const demoScenario: CustomerInput = {
     "Budget terbatas",
   ],
   buyingPreference: "Hemat dulu",
+};
+
+export const plumbingLeakScenario: CustomerInput = {
+  userStory:
+    "Pipa bawah sink dapur bocor dan air mulai merembes ke kabinet. Saya bingung harus beli seal, fitting, atau selang baru.",
+  selectedChips: [
+    "Pipa dapur bocor",
+    "Air merembes",
+    "Area bawah sink",
+    "Ukuran fitting belum jelas",
+    "Butuh arahan staf",
+  ],
+  buyingPreference: "Mudah dipasang",
+};
+
+export const demoScenarios = {
+  bathroomSafety: demoScenario,
+  plumbingLeak: plumbingLeakScenario,
 };
