@@ -30,9 +30,19 @@ Open:
 - http://localhost:3000/
 - http://localhost:3000/operations
 
+Inspect demo workflow:
+
+```bash
+npm --prefix mas exec tsx -- -e "import { runAllDemoWorkflows } from './workflows/bathroom-safety-workflow'; console.log(runAllDemoWorkflows().map((run) => ({ scenarioId: run.scenarioId, steps: run.interactionLog.length, finalDecision: run.finalDecision.finalRecommendation })));"
+```
+
 ## Project Overview
 
 MAS QHomemart menunjukkan bagaimana multi-agent workflow dapat membantu internal retail operation tanpa menjadikan AI sebagai pusat produk. Dashboard bersifat business-first: inquiry pelanggan, paket, layanan, follow-up, risiko operasional, dan keputusan stakeholder ditampilkan lebih dulu. AI automation dan agent detail berada di modul khusus.
+
+## AI Agent Competition Context
+
+Project ini disiapkan untuk evaluasi AI Agent Competition. Fokus evidence ada pada kualitas reasoning agent, kolaborasi antar agent, dampak operasional retail, kejelasan arsitektur source code, reproducibility, auditability, fallback governance, dan human review.
 
 ## Problem Statement
 
@@ -66,6 +76,12 @@ Agent modules berada di `agents/`. Workflow orchestration berada di `workflows/b
 | Bundle Strategy Agent | `agents/bundle-strategy-agent.ts` | Menyusun rekomendasi paket berlapis. |
 | Staff & Insight Agent | `agents/staff-insight-agent.ts` | Membuat staff summary dan business insight. |
 | Decision Synthesizer / Arbitration Agent | `agents/decision-synthesizer-agent.ts` | Membandingkan output agent, mendeteksi konflik, memilih rekomendasi akhir, menghitung confidence, dan menentukan human review. |
+
+Actual workflow files:
+
+- `workflows/bathroom-safety-workflow.ts`
+- `workflows/plumbing-leak-workflow.ts`
+- `workflows/interaction-logger.ts`
 
 ## Workflow Orchestration
 
@@ -103,6 +119,10 @@ Interaction log menyimpan:
 
 Log ini ditampilkan di Operations Dashboard pada modul `Audit Log`.
 
+## Human Review & Fallback Governance
+
+Customer Triage Agent dapat memakai LLM-assisted triage jika konfigurasi provider tersedia. Jika provider tidak tersedia atau output tidak valid, deterministic fallback digunakan. Downstream agents tetap rule-based/deterministic untuk menjaga stabilitas rekomendasi, reproducibility, dan auditability. Kasus dengan risiko tinggi, dependency layanan, atau conflict arbitration ditandai untuk human review.
+
 ## Supported Scenarios
 
 Current scope mendukung minimal dua scenario seed:
@@ -133,6 +153,14 @@ SUMOPOD_MODEL=gemini/gemini-2.0-flash
 
 Tanpa env tersebut, project tetap buildable dan runnable.
 
+## Competition Evidence
+
+1. Kualitas Reasoning Agent: workflow menyimpan `agentOutputs` berisi `confidence`, `reasoningBasis`, `decisionCriteria`, `rejectedAlternatives`, `requiresHumanReview`, dan `structuredOutput`.
+2. Kolaborasi Antar Agent: agent berjalan berurutan dari triage sampai arbitration, dan `interactionLog` mencatat source agent, target agent, dependency, fallback status, serta human review status.
+3. Dampak Dunia Nyata: sistem membantu retail inquiry triage, package recommendation, service coordination, staff follow-up, dan operational decision support.
+4. Kejelasan Arsitektur Sistem: source dipisah ke `agents/`, `workflows/`, `data/`, `types/`, dan dashboard observability di `components/operations/`.
+5. Reproducibility: deterministic workflow dapat dijalankan tanpa secret eksternal melalui install/build/dev command dan dua skenario lokal.
+
 ## Actual Project Structure
 
 ```text
@@ -157,4 +185,4 @@ mas/
 - Tidak ada live stock, live price, WhatsApp API, payment, auth, database, atau supplier sync.
 - Service guidance belum terhubung ke booking atau availability live.
 - Model routing untuk semua agent selain Customer Triage adalah routing preview.
-- Dashboard menggunakan sample data untuk current scope dan tidak mengklaim production-ready integration.
+- Dashboard menggunakan sample data untuk current scope dan tidak mengklaim integrasi operasional live.

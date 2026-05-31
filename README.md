@@ -7,6 +7,10 @@ Project ini memiliki dua entry point penting:
 - Public Home: https://qhomemart.vercel.app/
 - Operations Dashboard: https://qhomemart.vercel.app/operations
 
+## AI Agent Competition Context
+
+Repository ini disiapkan untuk evaluasi AI Agent Competition dengan fokus pada reproducibility, multi-agent reasoning, agent collaboration, business impact, auditability, fallback governance, dan human review. Dashboard berfungsi sebagai observability layer; identitas utama sistem tetap retail operating workflow.
+
 ## Problem Statement
 
 Customer retail sering datang dengan masalah rumah yang tidak langsung berbentuk SKU: kamar mandi licin, pipa bocor, bingung memilih cat, atau kebutuhan renovasi ringan. Staff perlu menerjemahkan masalah tersebut menjadi rekomendasi produk, paket, layanan opsional, follow-up, dan keputusan bisnis yang dapat diaudit.
@@ -39,6 +43,12 @@ Customer Triage Agent dapat menggunakan LLM-assisted triage jika dikonfigurasi. 
 
 Kedua skenario melewati workflow multi-agent yang sama.
 
+Workflow files yang tersedia:
+
+- `mas/workflows/bathroom-safety-workflow.ts`
+- `mas/workflows/plumbing-leak-workflow.ts`
+- `mas/workflows/interaction-logger.ts`
+
 ## Routes
 
 - `/`: public landing / customer-facing home.
@@ -60,6 +70,12 @@ Alternatif:
 npm install
 npm run dev
 npm run build
+```
+
+Inspect demo workflow:
+
+```bash
+npm --prefix mas exec tsx -- -e "import { runAllDemoWorkflows } from './workflows/bathroom-safety-workflow'; console.log(runAllDemoWorkflows().map((run) => ({ scenarioId: run.scenarioId, steps: run.interactionLog.length, finalDecision: run.finalDecision.finalRecommendation })));"
 ```
 
 ## Current Scope
@@ -84,6 +100,43 @@ npm run build
 - Agent hanya salah satu modul, bukan identitas utama produk.
 - Human review, fallback, governance, reasoning metadata, dan auditability eksplisit.
 - Tidak mengklaim live integration bila sistem belum connected.
+
+## Actual Repository Structure
+
+```text
+qhomemart.project/
+├── README.md
+├── package.json
+└── mas/
+    ├── agents/
+    ├── ai/
+    ├── app/
+    ├── components/
+    ├── data/
+    ├── docs/
+    ├── hooks/
+    ├── lib/
+    ├── scripts/
+    ├── styles/
+    ├── types/
+    └── workflows/
+```
+
+## Interaction Log & Auditability
+
+Workflow menghasilkan `interactionLog` dan `agentOutputs` yang dapat ditelusuri. Setiap step mencatat source agent, target agent, input summary, output summary, confidence, reasoning basis, decision dependency, fallback status, dan human review status.
+
+## Human Review & Fallback Governance
+
+Customer Triage Agent memiliki optional LLM-assisted triage saat konfigurasi tersedia. Jika tidak tersedia atau output tidak valid, deterministic fallback digunakan. Downstream agents tetap rule-based/deterministic untuk menjaga stabilitas, reproducibility, dan auditability. Output customer-facing tetap memerlukan validasi human review pada kasus berisiko atau saat ada dependency layanan.
+
+## Competition Evidence
+
+1. Kualitas Reasoning Agent: setiap output agent dibungkus reasoning metadata berisi confidence, reasoning basis, decision criteria, rejected alternatives, dan structured output.
+2. Kolaborasi Antar Agent: workflow berjalan berurutan dari Customer Triage sampai Decision Synthesizer, dengan dependency antar output tercatat di interaction log.
+3. Dampak Dunia Nyata: sistem memetakan retail inquiry menjadi package recommendation, service coordination, staff follow-up, dan stakeholder decision support.
+4. Kejelasan Arsitektur Sistem: source dipisah ke `agents/`, `workflows/`, `data/`, `types/`, dan dashboard observability di `components/operations/`.
+5. Reproducibility: `npm install --prefix mas`, `npm --prefix mas run build`, dan `npm --prefix mas run dev` berjalan tanpa secret eksternal untuk deterministic workflow demo.
 
 ## Known Limitations
 

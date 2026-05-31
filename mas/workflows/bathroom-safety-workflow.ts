@@ -373,6 +373,8 @@ function buildWorkflowResult(
   const scenario = resolveScenario(customerInput);
 
   return {
+    scenarioId: scenario.id,
+    scenarioName: scenario.title,
     scenario: {
       id: scenario.id,
       title: scenario.title,
@@ -388,8 +390,12 @@ function buildWorkflowResult(
     staffSummary: staffInsight.staffSummary,
     businessInsight: staffInsight.businessInsight,
     decision,
+    finalDecision: decision,
     agentOutputs,
     interactionLog,
+    businessImpact: staffInsight.businessInsight.businessOpportunities,
+    reproducibilityNote:
+      "Workflow uses local scenario input, deterministic downstream agents, stable timestamps, and no required external services. Optional LLM-assisted triage falls back to deterministic output when unavailable.",
     metrics,
     technicalNote:
       "Data current scope menggunakan sample data modular. Katalog produk, layanan, promo, stok, dan kanal WhatsApp dapat diganti dengan data QHomemart pada fase integrasi. Sistem ini belum terhubung ke sistem produksi QHomemart.",

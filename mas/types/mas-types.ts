@@ -38,6 +38,18 @@ export interface CustomerInput {
   buyingPreference: BuyingPreference;
 }
 
+/** Competition demo scenario descriptor. */
+export interface DemoScenarioDefinition {
+  scenarioId: string;
+  scenarioName: string;
+  customerInput: CustomerInput;
+  customerNeed: string;
+  channel: string;
+  urgencySignal: string;
+  businessContext: string;
+  expectedOutputType: string;
+}
+
 // ---------------------------------------------------------------------------
 // Triage Output
 // ---------------------------------------------------------------------------
@@ -254,15 +266,30 @@ export interface AgentOutput<TStructuredOutput> extends AgentReasoningMetadata {
 
 /** Output of the Decision Synthesizer / Arbitration Agent. */
 export interface DecisionSynthesizerOutput {
+  agentName: "Decision Synthesizer / Arbitration Agent";
   finalRecommendation: string;
+  finalConfidence: number;
+  decisionRationale: string;
   selectedBundleTitle: string;
   rationale: string;
   confidence: number;
+  detectedConflicts: string[];
   conflictsDetected: string[];
+  dependencySummary: string;
   conflictResolution: string[];
   humanReviewRequired: boolean;
   reviewReason: string;
+  rejectedAlternatives: string[];
   recommendedNextAction: string;
+  structuredOutput: {
+    finalRecommendation: string;
+    finalConfidence: number;
+    decisionRationale: string;
+    detectedConflicts: string[];
+    dependencySummary: string;
+    humanReviewRequired: boolean;
+    recommendedNextAction: string;
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -366,6 +393,8 @@ export interface WorkflowMetrics {
 
 /** The complete structured output of one end-to-end workflow run. */
 export interface WorkflowRunResult {
+  scenarioId: string;
+  scenarioName: string;
   scenario: {
     id: string;
     title: string;
@@ -381,8 +410,11 @@ export interface WorkflowRunResult {
   staffSummary: string;
   businessInsight: BusinessInsight;
   decision: DecisionSynthesizerOutput;
+  finalDecision: DecisionSynthesizerOutput;
   agentOutputs: AgentOutput<Record<string, unknown>>[];
   interactionLog: InteractionLogStep[];
+  businessImpact: string[];
+  reproducibilityNote: string;
   metrics: WorkflowMetrics;
   technicalNote: string;
   /** AI execution metadata from the triage step. Always present. */

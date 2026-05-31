@@ -46,32 +46,57 @@ export function runDecisionSynthesizerAgent({
     conflictResolution.push("Tampilkan layanan sebagai arahan opsional dan minta staff memvalidasi ketersediaan.");
   }
 
+  const confidence = Math.max(
+    0.62,
+    Math.min(0.93, 0.78 + productCount * 0.02 - conflictsDetected.length * 0.05)
+  );
+  const finalRecommendation = `${bundle.bundleTitle}: ${triage.normalizedNeed}`;
+  const decisionRationale =
+    `Rekomendasi dipilih karena triage, risk assessment, product match, service guidance, dan staff insight konsisten pada kebutuhan "${triage.problemCategory}". ` +
+    `Risiko prioritas dipetakan ke produk Section A, sementara layanan tetap opsional karena belum terhubung live.`;
+  const dependencySummary =
+    `Final decision depends on ${risks.risks.length} risk signals, ${productCount} product matches, ${services.sectionC.length} service guidance entries, and staff insight "${staffInsight.businessInsight.bundleOpportunity}".`;
+  const rejectedAlternatives =
+    conflictsDetected.length > 0
+      ? ["Auto-approve without staff validation", "Hide service uncertainty from staff"]
+      : ["Escalate without operational reason"];
   const humanReviewRequired =
     highRisks.length >= 2 ||
     conflictsDetected.length > 0 ||
     triage.constraints.some((constraint) => constraint.toLowerCase().includes("budget"));
 
-  const confidence = Math.max(
-    0.62,
-    Math.min(0.93, 0.78 + productCount * 0.02 - conflictsDetected.length * 0.05)
-  );
-
   return {
-    finalRecommendation: `${bundle.bundleTitle}: ${triage.normalizedNeed}`,
+    agentName: "Decision Synthesizer / Arbitration Agent",
+    finalRecommendation,
+    finalConfidence: confidence,
+    decisionRationale,
     selectedBundleTitle: bundle.bundleTitle,
-    rationale:
-      `Rekomendasi dipilih karena triage, risk assessment, product match, service guidance, dan staff insight konsisten pada kebutuhan "${triage.problemCategory}". ` +
-      `Risiko prioritas dipetakan ke produk Section A, sementara layanan tetap opsional karena belum terhubung live.`,
+    rationale: decisionRationale,
     confidence,
+    detectedConflicts: conflictsDetected,
     conflictsDetected,
+    dependencySummary,
     conflictResolution,
     humanReviewRequired,
     reviewReason: humanReviewRequired
       ? "Perlu validasi staff untuk risiko tinggi, budget constraint, atau ketersediaan layanan."
       : "Tidak ada konflik besar pada workflow deterministic.",
+    rejectedAlternatives,
     recommendedNextAction:
       staffInsight.businessInsight.bundleOpportunity.length > 0
         ? `Validasi paket "${staffInsight.businessInsight.bundleOpportunity}" dan lanjutkan follow-up staff.`
         : "Validasi hasil rekomendasi sebelum follow-up customer.",
+    structuredOutput: {
+      finalRecommendation,
+      finalConfidence: confidence,
+      decisionRationale,
+      detectedConflicts: conflictsDetected,
+      dependencySummary,
+      humanReviewRequired,
+      recommendedNextAction:
+        staffInsight.businessInsight.bundleOpportunity.length > 0
+          ? `Validasi paket "${staffInsight.businessInsight.bundleOpportunity}" dan lanjutkan follow-up staff.`
+          : "Validasi hasil rekomendasi sebelum follow-up customer.",
+    },
   };
 }

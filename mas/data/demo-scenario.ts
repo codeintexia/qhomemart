@@ -6,7 +6,7 @@
  * All data is fictional. Not connected to real QHomemart systems.
  */
 
-import type { CustomerInput } from "@/types/mas-types";
+import type { CustomerInput, DemoScenarioDefinition } from "@/types/mas-types";
 
 /**
  * The canonical demo scenario seed.
@@ -42,6 +42,24 @@ export const plumbingLeakScenario: CustomerInput = {
 };
 
 export const demoScenarios = {
-  bathroomSafety: demoScenario,
-  plumbingLeak: plumbingLeakScenario,
-};
+  bathroomSafety: {
+    scenarioId: "bathroom-safety",
+    scenarioName: "Bathroom Safety / Kamar Mandi Licin",
+    customerInput: demoScenario,
+    customerNeed: "Kamar mandi lebih aman untuk lansia.",
+    channel: "Public Home guided intake",
+    urgencySignal: "Risiko terpeleset dan pernah hampir jatuh.",
+    businessContext: "Caregiver household membutuhkan produk safety dan kemungkinan arahan pemasangan.",
+    expectedOutputType: "Package recommendation, staff summary, business insight, audit trail.",
+  },
+  plumbingLeak: {
+    scenarioId: "plumbing-leak",
+    scenarioName: "Plumbing Leak / Kebocoran Pipa",
+    customerInput: plumbingLeakScenario,
+    customerNeed: "Mengatasi pipa bawah sink dapur yang bocor.",
+    channel: "Public Home guided intake",
+    urgencySignal: "Air merembes ke kabinet dan ukuran fitting belum jelas.",
+    businessContext: "Customer membutuhkan produk plumbing, validasi staff, dan arahan layanan opsional.",
+    expectedOutputType: "Plumbing package recommendation, staff follow-up, review requirement, audit trail.",
+  },
+} satisfies Record<string, DemoScenarioDefinition>;
