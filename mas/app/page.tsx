@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import Link from "next/link"
+import { saveDemoInquiryEvent } from "@/lib/demo-event-bridge"
 import { runBathroomSafetyWorkflow } from "@/workflows/bathroom-safety-workflow"
 import {
   Search,
@@ -321,6 +322,7 @@ export default function MASQHomemart() {
   const [userType, setUserType] = useState("Lansia")
   const [userPriority, setUserPriority] = useState("Hemat dulu")
   const [toastMessage, setToastMessage] = useState("")
+  const savedDemoEventKey = useRef("")
 
   const showToast = (message: string) => {
     setToastMessage(message)
@@ -360,6 +362,35 @@ export default function MASQHomemart() {
     setShowVoiceMessage(true)
     setTimeout(() => setShowVoiceMessage(false), 3000)
   }
+
+  useEffect(() => {
+    if (screen < 6) {
+      return;
+    }
+
+    const eventKey = `${workflowOutput.scenarioId}:${selectedProblems.join("|")}:${preference}:${storyText}:${userType}:${userPriority}`;
+    if (savedDemoEventKey.current === eventKey) {
+      return;
+    }
+
+    savedDemoEventKey.current = eventKey;
+    const selectedProblemSummary = selectedProblems.length > 0 ? selectedProblems.join(", ") : "Belum ada masalah dipilih";
+    saveDemoInquiryEvent({
+      eventId: `MAS-DEMO-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      source: "public-home",
+      customerNeed: storyText.trim() || `${selectedProblemSummary} untuk ${userType}`,
+      selectedProblems,
+      preference,
+      scenarioId: workflowOutput.scenarioId,
+      workflowOutputSummary: workflowOutput.staffSummary,
+      finalRecommendation: workflowOutput.finalDecision.finalRecommendation,
+      humanReviewRequired: workflowOutput.finalDecision.humanReviewRequired,
+      auditStatus: workflowOutput.finalDecision.humanReviewRequired
+        ? "Audit Log tercatat, Human Review diperlukan"
+        : "Audit Log tercatat",
+    })
+  }, [preference, screen, selectedProblems, storyText, userPriority, userType])
 
   // Screen 1: Entry Screen
   const Screen1 = () => (

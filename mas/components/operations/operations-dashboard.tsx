@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Menu } from "lucide-react";
+import { getLatestDemoInquiryEvent, type DemoInquiryEvent } from "@/lib/demo-event-bridge";
 import type { WorkflowRunResult } from "@/types/mas-types";
 import { AutomationGovernance } from "./automation-governance";
 import { CommandOverview } from "./command-overview";
@@ -27,7 +28,23 @@ import {
 export function OperationsDashboard({ workflow }: { workflow: WorkflowRunResult }) {
   const [activeSection, setActiveSection] = useState<SectionId>("home");
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [latestDemoEvent, setLatestDemoEvent] = useState<DemoInquiryEvent | null>(null);
   const activeItem = sidebarItems.find((item) => item.id === activeSection);
+
+  useEffect(() => {
+    const readLatestEvent = () => {
+      setLatestDemoEvent(getLatestDemoInquiryEvent());
+    };
+
+    readLatestEvent();
+    window.addEventListener("storage", readLatestEvent);
+    window.addEventListener("focus", readLatestEvent);
+
+    return () => {
+      window.removeEventListener("storage", readLatestEvent);
+      window.removeEventListener("focus", readLatestEvent);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#070b13] text-slate-100">
@@ -83,6 +100,43 @@ export function OperationsDashboard({ workflow }: { workflow: WorkflowRunResult 
                 </Link>
               </div>
             </header>
+
+            <section className="mb-6 rounded-lg border border-white/10 bg-white/[0.055] p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Local demo bridge</p>
+                  <h2 className="mt-1 text-base font-semibold text-white">Event terbaru dari Public Home</h2>
+                  <p className="mt-1 text-xs leading-5 text-slate-400">
+                    {latestDemoEvent ? "Data demo dari Public Home tersedia." : "Belum ada event dari Public Home."}
+                  </p>
+                </div>
+                <span className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
+                  latestDemoEvent
+                    ? "border-emerald-300/30 bg-emerald-400/10 text-emerald-200"
+                    : "border-white/10 bg-slate-950/45 text-slate-400"
+                }`}>
+                  {latestDemoEvent ? "Event tersedia" : "Menunggu event"}
+                </span>
+              </div>
+
+              {latestDemoEvent && (
+                <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+                  {[
+                    ["Event ID", latestDemoEvent.eventId],
+                    ["Waktu", new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short" }).format(new Date(latestDemoEvent.timestamp))],
+                    ["Kebutuhan pelanggan", latestDemoEvent.customerNeed],
+                    ["Rekomendasi akhir", latestDemoEvent.finalRecommendation],
+                    ["Human Review", latestDemoEvent.humanReviewRequired ? "Diperlukan" : "Tidak wajib"],
+                    ["Audit status", latestDemoEvent.auditStatus],
+                  ].map(([label, value]) => (
+                    <div key={label} className="rounded-lg border border-white/10 bg-slate-950/35 p-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">{label}</p>
+                      <p className="mt-1 text-sm leading-5 text-slate-200">{value}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
 
             <div className={activeSection === "home" ? "block" : "hidden"}>
               <CommandOverview />

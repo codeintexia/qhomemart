@@ -73,6 +73,12 @@ Workflow menghasilkan `agentOutputs`, `interactionLog`, `finalDecision`, `busine
 
 Customer-facing output membutuhkan Human Review. Kasus high-risk, service uncertainty, atau conflict arbitration ditandai untuk review manusia. Jika LLM-assisted mode diminta tetapi provider tidak tersedia, Workflow tetap berjalan melalui deterministic Fallback dan mencatat alasannya.
 
+## Local Demo Bridge
+
+Public Home (`/`) dapat menulis satu demo inquiry event ke `localStorage` saat user mencapai layar hasil/rekomendasi. Operations Dashboard (`/operations`) membaca event terbaru tersebut melalui `localStorage` dan menampilkannya sebagai **Local demo bridge**.
+
+Bridge ini hanya untuk kredibilitas demo lokal: tidak memakai backend, database, API Key, atau event queue. Implementasi production membutuhkan API/database/event queue, autentikasi, validasi server-side, dan governance data yang sesuai.
+
 ## Local Development
 
 Dari root repository:
