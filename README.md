@@ -142,24 +142,26 @@ npm run dev
 qhomemart.project/
 ├── README.md
 └── mas/
-    ├── agents/
-    ├── ai/
     ├── app/
     ├── components/
-    ├── data/
-    ├── docs/
-    ├── hooks/
     ├── lib/
-    ├── scripts/
-    ├── styles/
+    ├── data/
+    ├── ai/
     ├── types/
-    └── workflows/
+    ├── scripts/
+    ├── agents/
+    ├── workflows/
+    ├── hooks/
+    ├── package.json
+    ├── package-lock.json
+    ├── tsconfig.json
+    └── .env.example
 ```
 
 ## Known Limitations
 
 - Dashboard preview may run deterministic workflow by default.
-- LLM provider call is not implemented in local preview unless explicitly wired later.
+- LLM-assisted mode is optional and depends on valid provider credentials. The system supports OpenAI, Gemini, and Sumopod-compatible provider calls through the provider-agnostic LLM client. If credentials are missing, invalid, or the provider call fails, the workflow falls back safely to deterministic mode.
 - Downstream business agents are deterministic by design.
 - Product catalog, stock, WhatsApp, price, payment, auth, and database are not live integrations.
 - No autonomous full decision-making; human review remains explicit.

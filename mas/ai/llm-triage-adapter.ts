@@ -1,4 +1,8 @@
 /**
+ * Legacy Sumopod-specific triage adapter.
+ * Current provider-agnostic LLM execution is handled by mas/ai/llm-client.ts.
+ * Kept for compatibility and script-level experiments.
+ *
  * LLM Triage Adapter — MAS QHomemart
  *
  * Provides a safe, provider-neutral interface for optional LLM-assisted triage.
