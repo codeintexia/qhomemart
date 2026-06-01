@@ -13,21 +13,21 @@
  *   the LLM call fails for any reason.
  * - Reads configuration only from environment variables (never hardcoded).
  *
- * Confirmed Sumopod API:
- *   Endpoint: POST {SUMOPOD_BASE_URL}/chat/completions
- *   Compatible: OpenAI chat completions format
- *   Recommended model: gemini/gemini-2.0-flash
+ * Optional provider API shape:
+ *   Endpoint: POST {LLM_BASE_URL}/chat/completions
+ *   Compatible: OpenAI chat completions format when a compatible provider is configured.
  *
  * Required environment variables (all optional for build and default demo):
- *   SUMOPOD_API_KEY    — API key for authentication
- *   SUMOPOD_BASE_URL   — e.g. https://ai.sumopod.com/v1
- *   SUMOPOD_MODEL      — e.g. gemini/gemini-2.0-flash
+ *   LLM_API_KEY    — API key for authentication
+ *   LLM_BASE_URL   — OpenAI-compatible base URL
+ *   LLM_MODEL      — selected model
  *
  * Prototype. Not a production autonomous AI system.
  * Not connected to real QHomemart inventory, pricing, or WhatsApp.
  */
 
 import { buildTriagePrompt } from "@/ai/triage-prompt";
+import { getRuntimeModeSummary } from "@/lib/agent-runtime-config";
 import type {
   CustomerInput,
   LLMTriageCandidate,
@@ -45,9 +45,9 @@ function readProviderConfig(): {
   model: string | undefined;
 } {
   return {
-    apiKey: process.env.SUMOPOD_API_KEY,
-    baseUrl: process.env.SUMOPOD_BASE_URL,
-    model: process.env.SUMOPOD_MODEL,
+    apiKey: process.env.LLM_API_KEY,
+    baseUrl: process.env.LLM_BASE_URL,
+    model: process.env.LLM_MODEL,
   };
 }
 
@@ -114,23 +114,20 @@ function safeParseJSON(raw: string): unknown {
  * @returns AIExecutionMetadata with aiAvailable reflecting env var presence
  */
 export function getLLMTriageAvailability(): AIExecutionMetadata {
-  const { model } = readProviderConfig();
-  if (!isProviderConfigured()) {
-    return {
-      aiMode: "deterministic-fallback",
-      aiAvailable: false,
-      aiReason:
-        "LLM environment variables are not configured. Set SUMOPOD_API_KEY, SUMOPOD_BASE_URL, and SUMOPOD_MODEL to enable LLM-assisted triage.",
-    };
-  }
-
+  const runtime = getRuntimeModeSummary();
   return {
     aiMode: "deterministic-fallback",
-    aiAvailable: true,
-    aiProvider: "sumopod",
-    aiModel: model,
-    aiReason:
-      "LLM provider is configured. Call runOptionalLLMTriage() to attempt LLM-assisted triage.",
+    requestedMode: runtime.requestedMode,
+    executionMode: "deterministic",
+    effectiveMode: "deterministic",
+    usedLLM: false,
+    aiAvailable: runtime.llmAvailable,
+    aiProvider: runtime.provider,
+    aiModel: runtime.model,
+    provider: runtime.provider,
+    model: runtime.model,
+    warnings: runtime.warnings,
+    aiReason: runtime.warnings[0] ?? "Dashboard preview uses deterministic workflow by default.",
   };
 }
 

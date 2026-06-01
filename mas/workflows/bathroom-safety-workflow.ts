@@ -35,6 +35,7 @@ import { runStaffInsightAgent } from "@/agents/staff-insight-agent";
 import { runDecisionSynthesizerAgent } from "@/agents/decision-synthesizer-agent";
 import { createInteractionLogEntry } from "@/workflows/interaction-logger";
 import { getLLMTriageAvailability } from "@/ai/llm-triage-adapter";
+import { getRuntimeModeSummary } from "@/lib/agent-runtime-config";
 import { demoProducts } from "@/data/products";
 import { demoServices } from "@/data/services";
 import { bundleRules } from "@/data/bundle-rules";
@@ -66,6 +67,12 @@ const SCENARIO_REGISTRY = {
 
 function createAgentOutput<T extends Record<string, unknown>>({
   agentName,
+  requestedMode,
+  executionMode,
+  effectiveMode,
+  usedLLM,
+  provider,
+  model,
   inputSummary,
   outputSummary,
   confidence,
@@ -73,10 +80,17 @@ function createAgentOutput<T extends Record<string, unknown>>({
   decisionCriteria,
   rejectedAlternatives,
   requiresHumanReview,
+  warnings,
   structuredOutput,
 }: AgentOutput<T>): AgentOutput<T> {
   return {
     agentName,
+    requestedMode,
+    executionMode,
+    effectiveMode,
+    usedLLM,
+    provider,
+    model,
     inputSummary,
     outputSummary,
     confidence,
@@ -84,6 +98,7 @@ function createAgentOutput<T extends Record<string, unknown>>({
     decisionCriteria,
     rejectedAlternatives,
     requiresHumanReview,
+    warnings,
     structuredOutput,
   };
 }
@@ -109,12 +124,25 @@ function buildWorkflowResult(
 ): WorkflowRunResult {
   const interactionLog = [];
   const agentOutputs: AgentOutput<Record<string, unknown>>[] = [];
+  const runtime = getRuntimeModeSummary();
+  const workflowEffectiveMode = aiMeta.usedLLM ? "llm-assisted" : "deterministic";
+  const fallbackUsed = runtime.requestedMode === "llm-assisted" && !aiMeta.usedLLM;
+  const fallbackReason =
+    fallbackUsed
+      ? aiMeta.aiReason ?? runtime.warnings[0] ?? "LLM-assisted mode unavailable. Deterministic fallback used."
+      : "None";
 
   // Step 1 — Customer Triage Agent
   const aiModeLabel =
     aiMeta.aiMode === "llm-assisted" ? "LLM-assisted triage" : "deterministic fallback";
   const triageAgentOutput = createAgentOutput({
     agentName: "Customer Triage Agent",
+    requestedMode: runtime.requestedMode,
+    executionMode: workflowEffectiveMode,
+    effectiveMode: workflowEffectiveMode,
+    usedLLM: aiMeta.usedLLM ?? false,
+    provider: aiMeta.provider ?? aiMeta.aiProvider ?? runtime.provider,
+    model: aiMeta.model ?? aiMeta.aiModel ?? runtime.model,
     inputSummary: `Cerita pelanggan, chips kondisi, dan preferensi beli.`,
     outputSummary: `Masalah: ${triage.problemCategory}. Ruang: ${triage.primarySpace}. Pengguna utama: ${triage.primaryUser}.`,
     confidence: aiMeta.aiMode === "llm-assisted" ? 0.86 : 0.82,
@@ -129,6 +157,7 @@ function buildWorkflowResult(
         ? ["Bathroom safety bundle", "Paint consultation"]
         : ["General renovation", "Plumbing leak handling"],
     requiresHumanReview: false,
+    warnings: aiMeta.warnings ?? runtime.warnings,
     structuredOutput: {
       ...(triage as unknown as Record<string, unknown>),
       aiMeta,
@@ -145,9 +174,18 @@ function buildWorkflowResult(
       outputSummary: `Masalah: ${triage.problemCategory}. Pengguna utama: ${triage.primaryUser}. Preferensi: ${customerInput.buyingPreference}. Mode: ${aiModeLabel}.`,
       confidence: triageAgentOutput.confidence,
       reasoningBasis: triageAgentOutput.reasoningBasis,
+      requestedMode: runtime.requestedMode,
+      executionMode: workflowEffectiveMode,
+      effectiveMode: workflowEffectiveMode,
+      usedLLM: aiMeta.usedLLM ?? false,
+      provider: aiMeta.provider ?? aiMeta.aiProvider ?? runtime.provider,
+      model: aiMeta.model ?? aiMeta.aiModel ?? runtime.model,
       decisionDependency: "Defines canonical demand state for all downstream agents.",
-      fallbackStatus: aiMeta.aiMode === "deterministic-fallback" ? "Deterministic fallback used" : "LLM-assisted triage used",
+      fallbackStatus: aiMeta.usedLLM ? "LLM-assisted triage used" : fallbackUsed ? "Deterministic fallback used" : "Deterministic mode used",
+      fallbackReason,
+      requiresHumanReview: false,
       humanReviewStatus: "Not required at triage step",
+      warnings: aiMeta.warnings ?? runtime.warnings,
       structuredOutput: triageAgentOutput.structuredOutput,
     })
   );
@@ -323,6 +361,12 @@ function buildWorkflowResult(
   });
   const decisionAgentOutput = createAgentOutput({
     agentName: "Decision Synthesizer / Arbitration Agent",
+    requestedMode: decision.requestedMode,
+    executionMode: decision.executionMode,
+    effectiveMode: decision.effectiveMode,
+    usedLLM: decision.usedLLM,
+    provider: decision.provider,
+    model: decision.model,
     inputSummary: "All previous agent outputs and reasoning metadata.",
     outputSummary: `${decision.finalRecommendation}. Confidence ${(decision.confidence * 100).toFixed(0)}%.`,
     confidence: decision.confidence,
@@ -337,6 +381,7 @@ function buildWorkflowResult(
       ? ["Auto-approve without staff review"]
       : ["Escalate without operational reason"],
     requiresHumanReview: decision.humanReviewRequired,
+    warnings: decision.warnings,
     structuredOutput: decision as unknown as Record<string, unknown>,
   });
   agentOutputs.push(decisionAgentOutput);
@@ -350,9 +395,18 @@ function buildWorkflowResult(
       outputSummary: decision.finalRecommendation,
       confidence: decisionAgentOutput.confidence,
       reasoningBasis: decisionAgentOutput.reasoningBasis,
+      requestedMode: decision.requestedMode,
+      executionMode: decision.executionMode,
+      effectiveMode: decision.effectiveMode,
+      usedLLM: decision.usedLLM,
+      provider: decision.provider,
+      model: decision.model,
       decisionDependency: "Final auditable recommendation and human-review instruction.",
       fallbackStatus: decision.conflictsDetected.length > 0 ? "Conflict handled by arbitration policy" : "No fallback triggered",
+      fallbackReason: decision.usedLLM ? "None" : "Deterministic arbitration used.",
+      requiresHumanReview: decision.humanReviewRequired,
       humanReviewStatus: decision.humanReviewRequired ? decision.reviewReason : "Not required",
+      warnings: decision.warnings,
       structuredOutput: decisionAgentOutput.structuredOutput,
     })
   );
@@ -375,6 +429,15 @@ function buildWorkflowResult(
   return {
     scenarioId: scenario.id,
     scenarioName: scenario.title,
+    requestedMode: runtime.requestedMode,
+    executionMode: workflowEffectiveMode,
+    effectiveMode: workflowEffectiveMode,
+    llmAvailable: runtime.llmAvailable,
+    llmProvider: runtime.provider,
+    llmModel: runtime.model,
+    fallbackUsed,
+    fallbackReason,
+    warnings: Array.from(new Set([...(runtime.warnings ?? []), ...(aiMeta.warnings ?? []), ...(decision.warnings ?? [])])),
     scenario: {
       id: scenario.id,
       title: scenario.title,
@@ -395,7 +458,7 @@ function buildWorkflowResult(
     interactionLog,
     businessImpact: staffInsight.businessInsight.businessOpportunities,
     reproducibilityNote:
-      "Workflow uses local scenario input, deterministic downstream agents, stable timestamps, and no required external services. Optional LLM-assisted triage falls back to deterministic output when unavailable.",
+      "Deterministic mode runs without API key. LLM-assisted mode is optional and applies only to selected agents.",
     metrics,
     technicalNote:
       "Data current scope menggunakan sample data modular. Katalog produk, layanan, promo, stok, dan kanal WhatsApp dapat diganti dengan data QHomemart pada fase integrasi. Sistem ini belum terhubung ke sistem produksi QHomemart.",

@@ -4,6 +4,8 @@ out/
 dist/
 .env
 .env.*
+!.env.example
+!mas/.env.example
 .DS_Store
 *.log
 *.zip

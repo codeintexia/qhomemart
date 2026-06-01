@@ -250,6 +250,12 @@ export interface StaffInsightOutput {
 /** Standard reasoning metadata attached to every agent output. */
 export interface AgentReasoningMetadata {
   agentName: string;
+  requestedMode?: "deterministic" | "llm-assisted";
+  executionMode?: "deterministic" | "llm-assisted";
+  effectiveMode?: "deterministic" | "llm-assisted";
+  usedLLM?: boolean;
+  provider?: string;
+  model?: string;
   inputSummary: string;
   outputSummary: string;
   confidence: number;
@@ -257,6 +263,7 @@ export interface AgentReasoningMetadata {
   decisionCriteria: string[];
   rejectedAlternatives: string[];
   requiresHumanReview: boolean;
+  warnings?: string[];
 }
 
 /** Generic agent output envelope used by the workflow audit trail. */
@@ -267,6 +274,12 @@ export interface AgentOutput<TStructuredOutput> extends AgentReasoningMetadata {
 /** Output of the Decision Synthesizer / Arbitration Agent. */
 export interface DecisionSynthesizerOutput {
   agentName: "Decision Synthesizer / Arbitration Agent";
+  requestedMode: "deterministic" | "llm-assisted";
+  executionMode: "deterministic" | "llm-assisted";
+  effectiveMode: "deterministic" | "llm-assisted";
+  usedLLM: boolean;
+  provider: string;
+  model: string;
   finalRecommendation: string;
   finalConfidence: number;
   decisionRationale: string;
@@ -281,6 +294,7 @@ export interface DecisionSynthesizerOutput {
   reviewReason: string;
   rejectedAlternatives: string[];
   recommendedNextAction: string;
+  warnings: string[];
   structuredOutput: {
     finalRecommendation: string;
     finalConfidence: number;
@@ -308,6 +322,13 @@ export type AIMode = "llm-assisted" | "deterministic-fallback";
 export interface AIExecutionMetadata {
   /** The mode actually used in this run. */
   aiMode: AIMode;
+  requestedMode?: "deterministic" | "llm-assisted";
+  executionMode?: "deterministic" | "llm-assisted";
+  effectiveMode?: "deterministic" | "llm-assisted";
+  usedLLM?: boolean;
+  provider?: string;
+  model?: string;
+  warnings?: string[];
   /** True if an LLM provider was available and responded successfully. */
   aiAvailable: boolean;
   /** Human-readable reason why the mode was selected (especially for fallback). */
@@ -351,10 +372,17 @@ export interface HybridTriageOutput extends TriageOutput {
 
 /** A single step in the interaction log. */
 export interface InteractionLogStep {
+  step: number;
   stepNumber: number;
   agentName: string;
   sourceAgent: string;
   targetAgent?: string;
+  requestedMode: "deterministic" | "llm-assisted";
+  executionMode: "deterministic" | "llm-assisted";
+  effectiveMode: "deterministic" | "llm-assisted";
+  usedLLM: boolean;
+  provider: string;
+  model: string;
   inputSummary: string;
   outputSummary: string;
   input: string;
@@ -364,7 +392,10 @@ export interface InteractionLogStep {
   decisionDependency: string;
   timestamp: string;
   fallbackStatus: string;
+  fallbackReason: string;
+  requiresHumanReview: boolean;
   humanReviewStatus: string;
+  warnings: string[];
   structuredOutput: Record<string, unknown>;
 }
 
@@ -395,6 +426,15 @@ export interface WorkflowMetrics {
 export interface WorkflowRunResult {
   scenarioId: string;
   scenarioName: string;
+  requestedMode: "deterministic" | "llm-assisted";
+  executionMode: "deterministic" | "llm-assisted";
+  effectiveMode: "deterministic" | "llm-assisted";
+  llmAvailable: boolean;
+  llmProvider: string;
+  llmModel: string;
+  fallbackUsed: boolean;
+  fallbackReason: string;
+  warnings: string[];
   scenario: {
     id: string;
     title: string;

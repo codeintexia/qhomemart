@@ -12,6 +12,7 @@
  */
 
 import type { InteractionLogStep } from "@/types/mas-types";
+import { getRuntimeModeSummary } from "@/lib/agent-runtime-config";
 
 /**
  * Parameters for creating one interaction log entry.
@@ -21,13 +22,22 @@ export interface LogEntryParams {
   agentName: string;
   sourceAgent?: string;
   targetAgent?: string;
+  requestedMode?: "deterministic" | "llm-assisted";
+  executionMode?: "deterministic" | "llm-assisted";
+  effectiveMode?: "deterministic" | "llm-assisted";
+  usedLLM?: boolean;
+  provider?: string;
+  model?: string;
   inputSummary: string;
   outputSummary: string;
   confidence?: number;
   reasoningBasis?: string[];
   decisionDependency?: string;
   fallbackStatus?: string;
+  fallbackReason?: string;
+  requiresHumanReview?: boolean;
   humanReviewStatus?: string;
+  warnings?: string[];
   structuredOutput: Record<string, unknown>;
 }
 
@@ -43,11 +53,19 @@ export interface LogEntryParams {
 export function createInteractionLogEntry(
   params: LogEntryParams
 ): InteractionLogStep {
+  const runtime = getRuntimeModeSummary();
   return {
+    step: params.stepNumber,
     stepNumber: params.stepNumber,
     agentName: params.agentName,
     sourceAgent: params.sourceAgent ?? params.agentName,
     targetAgent: params.targetAgent,
+    requestedMode: params.requestedMode ?? runtime.requestedMode,
+    executionMode: params.executionMode ?? "deterministic",
+    effectiveMode: params.effectiveMode ?? "deterministic",
+    usedLLM: params.usedLLM ?? false,
+    provider: params.provider ?? runtime.provider,
+    model: params.model ?? runtime.model,
     inputSummary: params.inputSummary,
     outputSummary: params.outputSummary,
     input: params.inputSummary,
@@ -57,7 +75,10 @@ export function createInteractionLogEntry(
     decisionDependency: params.decisionDependency ?? "Feeds the next workflow step",
     timestamp: `2026-05-31T18:${String(params.stepNumber).padStart(2, "0")}:00+07:00`,
     fallbackStatus: params.fallbackStatus ?? "No fallback triggered",
+    fallbackReason: params.fallbackReason ?? runtime.warnings[0] ?? "None",
+    requiresHumanReview: params.requiresHumanReview ?? false,
     humanReviewStatus: params.humanReviewStatus ?? "Not required",
+    warnings: params.warnings ?? runtime.warnings,
     structuredOutput: params.structuredOutput,
   };
 }

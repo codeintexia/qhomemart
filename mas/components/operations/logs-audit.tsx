@@ -53,6 +53,9 @@ export function LogsAudit({ workflow }: { workflow: WorkflowRunResult }) {
     String(entry.stepNumber),
     entry.sourceAgent,
     entry.targetAgent ?? "Final output",
+    entry.requestedMode,
+    entry.effectiveMode,
+    entry.usedLLM ? "Yes" : "No",
     entry.input,
     entry.output,
     `${Math.round(entry.confidence * 100)}%`,
@@ -60,6 +63,7 @@ export function LogsAudit({ workflow }: { workflow: WorkflowRunResult }) {
     entry.decisionDependency,
     entry.timestamp,
     entry.fallbackStatus,
+    entry.fallbackReason,
     entry.humanReviewStatus,
   ]);
 
@@ -77,6 +81,9 @@ export function LogsAudit({ workflow }: { workflow: WorkflowRunResult }) {
         <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Last updated: 31 Mei 2026, 14:25</span>
         <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Audit period: Today</span>
         <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Workflow: Retail Workflow v1.6</span>
+        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Execution Mode: {workflow.effectiveMode === "llm-assisted" ? "LLM-Assisted Hybrid" : "Deterministic Demo"}</span>
+        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">LLM Available: {workflow.llmAvailable ? "Yes" : "No"}</span>
+        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Fallback Used: {workflow.fallbackUsed ? "Yes" : "No"}</span>
         <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Governance: Audit Policy v1.1</span>
         <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Audit status: Active</span>
       </div>
@@ -104,7 +111,7 @@ export function LogsAudit({ workflow }: { workflow: WorkflowRunResult }) {
       <DataTable
         title="Workflow Interaction Log"
         minWidthClass="min-w-[1900px]"
-        headers={["Step", "Source Agent", "Target Agent", "Input", "Output", "Confidence", "Reasoning Basis", "Decision Dependency", "Timestamp", "Fallback", "Human Review"]}
+        headers={["Step", "Source Agent", "Target Agent", "Requested Mode", "Effective Mode", "Used LLM", "Input", "Output", "Confidence", "Reasoning Basis", "Decision Dependency", "Timestamp", "Fallback", "Fallback Reason", "Human Review"]}
         rows={interactionRows}
       />
 

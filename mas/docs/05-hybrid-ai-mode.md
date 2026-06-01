@@ -7,7 +7,7 @@ MAS QHomemart is designed with a two-mode triage architecture:
 | Mode | Description | When Active |
 |------|-------------|-------------|
 | **Deterministic fallback** | Triage logic runs as a local TypeScript function. Output is reproducible across all environments. | Default — always active in the public demo |
-| **LLM-assisted triage** | Sumopod API (OpenAI-compatible) classifies the customer's problem and returns structured JSON. | Optional — requires three environment variables |
+| **LLM-assisted triage** | Optional server-side LLM support can assist interpretation when configured. | Optional — requires `AGENT_EXECUTION_MODE=llm-assisted` and `LLM_*` variables |
 
 The public demo **always uses deterministic fallback** to ensure reproducibility.
 No network calls are made during the default demo run.
@@ -24,9 +24,9 @@ CustomerInput
 │  runHybridCustomerTriageAgent()              │
 │  agents/customer-triage-agent.ts            │
 │                                             │
-│  1. runOptionalLLMTriage(input)             │
-│     ai/llm-triage-adapter.ts               │
-│     → reads SUMOPOD_API_KEY, etc.           │
+│  1. runLLMCompletion(input)                │
+│     ai/llm-client.ts                       │
+│     → reads server-side LLM_* variables     │
 │     → if missing: returns null + fallback   │
 │     → if present: POST /chat/completions    │
 │       model: gemini/gemini-2.0-flash        │
@@ -64,7 +64,8 @@ runBathroomSafetyWorkflowAsync()
 | File | Role |
 |------|------|
 | `ai/triage-prompt.ts` | Builds the Indonesian-language chat completion prompt |
-| `ai/llm-triage-adapter.ts` | OpenAI-compatible Sumopod adapter with full error handling |
+| `ai/llm-client.ts` | Safe runtime-aware LLM client; local preview returns deterministic fallback unless provider call is implemented |
+| `lib/agent-runtime-config.ts` | Central execution mode and LLM config reader |
 | `agents/customer-triage-agent.ts` | `runCustomerTriageAgent()` (sync, deterministic) + `runHybridCustomerTriageAgent()` (async, hybrid) |
 | `workflows/bathroom-safety-workflow.ts` | `runBathroomSafetyWorkflow()` (sync, UI-safe) + `runBathroomSafetyWorkflowAsync()` (async, LLM-enabled) |
 | `types/mas-types.ts` | `AIMode`, `AIExecutionMetadata`, `LLMTriageCandidate`, `HybridTriageOutput` |
@@ -79,9 +80,10 @@ the system works without them.
 
 | Variable | Description | Value |
 |----------|-------------|-------|
-| `SUMOPOD_API_KEY` | API key for authentication | Your Sumopod API key |
-| `SUMOPOD_BASE_URL` | Provider base URL | `https://ai.sumopod.com/v1` |
-| `SUMOPOD_MODEL` | Model to use for triage | `gemini/gemini-2.0-flash` |
+| `AGENT_EXECUTION_MODE` | Runtime selector | `deterministic` or `llm-assisted` |
+| `LLM_API_KEY` | Server-side API key | Your provider key |
+| `LLM_BASE_URL` | Provider base URL | OpenAI-compatible base URL |
+| `LLM_MODEL` | Model to use | Provider model name |
 
 > **None of these variables are required for the public demo or build.**
 > The build passes with zero environment variables configured.
@@ -96,9 +98,10 @@ supports large context windows, and handles Indonesian JSON extraction well.
 ### Option A — Shell export (local development)
 
 ```bash
-export SUMOPOD_API_KEY=your_key_here
-export SUMOPOD_BASE_URL=https://ai.sumopod.com/v1
-export SUMOPOD_MODEL=gemini/gemini-2.0-flash
+export AGENT_EXECUTION_MODE=llm-assisted
+export LLM_API_KEY=your_key_here
+export LLM_BASE_URL=https://api.sumopod.com/v1
+export LLM_MODEL=your-model
 npx tsx mas/scripts/test-sumopod-triage.ts
 ```
 
@@ -106,9 +109,10 @@ npx tsx mas/scripts/test-sumopod-triage.ts
 
 ```bash
 # mas/.env.local  (gitignored)
-SUMOPOD_API_KEY=your_key_here
-SUMOPOD_BASE_URL=https://ai.sumopod.com/v1
-SUMOPOD_MODEL=gemini/gemini-2.0-flash
+AGENT_EXECUTION_MODE=llm-assisted
+LLM_API_KEY=your_key_here
+LLM_BASE_URL=https://api.sumopod.com/v1
+LLM_MODEL=your-model
 ```
 
 > `.env.local` is picked up automatically by Next.js dev server.
@@ -120,9 +124,10 @@ SUMOPOD_MODEL=gemini/gemini-2.0-flash
 ## Testing the Connection
 
 ```bash
-SUMOPOD_API_KEY=your_key \
-SUMOPOD_BASE_URL=https://ai.sumopod.com/v1 \
-SUMOPOD_MODEL=gemini/gemini-2.0-flash \
+AGENT_EXECUTION_MODE=llm-assisted \
+LLM_API_KEY=your_key \
+LLM_BASE_URL=https://api.sumopod.com/v1 \
+LLM_MODEL=your-model \
 npx tsx mas/scripts/test-sumopod-triage.ts
 ```
 

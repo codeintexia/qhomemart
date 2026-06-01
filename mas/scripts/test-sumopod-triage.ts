@@ -1,21 +1,23 @@
 /**
- * Sumopod Triage Test Script — MAS QHomemart
+ * Hybrid Triage Test Script — MAS QHomemart
  *
- * Developer utility to manually verify that the Sumopod LLM triage adapter
- * is working correctly with real environment variables.
+ * Developer utility to inspect deterministic and optional LLM-assisted triage
+ * behavior with generic server-side LLM environment variables.
  *
  * Usage:
  *   Set environment variables first, then run with tsx:
  *
- *   SUMOPOD_API_KEY=your_key \
- *   SUMOPOD_BASE_URL=https://ai.sumopod.com/v1 \
- *   SUMOPOD_MODEL=gemini/gemini-2.0-flash \
+ *   AGENT_EXECUTION_MODE=llm-assisted \
+ *   LLM_API_KEY=your_key \
+ *   LLM_BASE_URL=https://api.sumopod.com/v1 \
+ *   LLM_MODEL=your-model \
  *   npx tsx mas/scripts/test-sumopod-triage.ts
  *
  * Or export them in your shell first:
- *   export SUMOPOD_API_KEY=your_key
- *   export SUMOPOD_BASE_URL=https://ai.sumopod.com/v1
- *   export SUMOPOD_MODEL=gemini/gemini-2.0-flash
+ *   export AGENT_EXECUTION_MODE=llm-assisted
+ *   export LLM_API_KEY=your_key
+ *   export LLM_BASE_URL=https://api.sumopod.com/v1
+ *   export LLM_MODEL=your-model
  *   npx tsx mas/scripts/test-sumopod-triage.ts
  *
  * Expected output when env vars are set:
@@ -52,7 +54,7 @@ const demoInput: CustomerInput = {
 };
 
 async function main() {
-  console.log("=== MAS QHomemart — Sumopod Triage Test ===\n");
+  console.log("=== MAS QHomemart — Hybrid Triage Test ===\n");
   console.log("Input:");
   console.log(`  User story : ${demoInput.userStory}`);
   console.log(`  Chips      : ${demoInput.selectedChips.join(", ")}`);
@@ -61,13 +63,16 @@ async function main() {
 
   console.log("Env vars:");
   console.log(
-    `  SUMOPOD_API_KEY   : ${process.env.SUMOPOD_API_KEY ? "[set]" : "[not set]"}`
+    `  AGENT_EXECUTION_MODE : ${process.env.AGENT_EXECUTION_MODE ?? "[not set]"}`
   );
   console.log(
-    `  SUMOPOD_BASE_URL  : ${process.env.SUMOPOD_BASE_URL ?? "[not set]"}`
+    `  LLM_API_KEY          : ${process.env.LLM_API_KEY ? "[set]" : "[not set]"}`
   );
   console.log(
-    `  SUMOPOD_MODEL     : ${process.env.SUMOPOD_MODEL ?? "[not set]"}`
+    `  LLM_BASE_URL         : ${process.env.LLM_BASE_URL ?? "[not set]"}`
+  );
+  console.log(
+    `  LLM_MODEL            : ${process.env.LLM_MODEL ?? "[not set]"}`
   );
   console.log();
 

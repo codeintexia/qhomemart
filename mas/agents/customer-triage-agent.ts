@@ -12,8 +12,8 @@
  *     same input. Used as the canonical fallback and by tests.
  *
  *   runHybridCustomerTriageAgent(input)
- *     Async. Attempts optional LLM-assisted triage via Sumopod when
- *     SUMOPOD_API_KEY, SUMOPOD_BASE_URL, and SUMOPOD_MODEL are set.
+ *     Async. Attempts optional LLM-assisted triage when
+ *     AGENT_EXECUTION_MODE=llm-assisted and generic LLM_* env vars are set.
  *     If the LLM responds with valid structured JSON, that output is used.
  *     Otherwise falls back to runCustomerTriageAgent(). Never throws.
  *     Always returns HybridTriageOutput including AIExecutionMetadata.
@@ -28,7 +28,8 @@ import type {
   HybridTriageOutput,
   LLMTriageCandidate,
 } from "@/types/mas-types";
-import { runOptionalLLMTriage } from "@/ai/llm-triage-adapter";
+import { runLLMCompletion } from "@/ai/llm-client";
+import { getRuntimeModeSummary } from "@/lib/agent-runtime-config";
 
 export type { CustomerInput };
 
@@ -228,8 +229,44 @@ export async function runHybridCustomerTriageAgent(
   // field-level normalization of incomplete LLM candidates.
   const deterministicTriage = runCustomerTriageAgent(input);
 
-  // Attempt LLM triage (returns null candidate when unavailable/failed)
-  const { candidate, aiMeta } = await runOptionalLLMTriage(input);
+  const runtime = getRuntimeModeSummary();
+  const llmResult = await runLLMCompletion({
+    purpose: "customer-triage",
+    systemPrompt:
+      "You assist Indonesian retail triage. Return only JSON matching the triage schema.",
+    userPrompt: JSON.stringify({
+      userStory: input.userStory,
+      selectedChips: input.selectedChips,
+      buyingPreference: input.buyingPreference,
+    }),
+    temperature: 0.1,
+    maxTokens: 500,
+  });
+
+  const candidate = llmResult.usedLLM
+    ? safeParseLLMTriageCandidate(llmResult.output)
+    : null;
+
+  const aiMeta = {
+    aiMode: llmResult.usedLLM ? "llm-assisted" as const : "deterministic-fallback" as const,
+    requestedMode: runtime.requestedMode,
+    executionMode: llmResult.effectiveMode,
+    effectiveMode: llmResult.effectiveMode,
+    usedLLM: llmResult.usedLLM,
+    aiAvailable: runtime.llmAvailable,
+    aiProvider: llmResult.provider,
+    aiModel: llmResult.model,
+    provider: llmResult.provider,
+    model: llmResult.model,
+    warnings: [
+      ...runtime.warnings,
+      ...(llmResult.warning ? [llmResult.warning] : []),
+      ...(llmResult.error ? [llmResult.error] : []),
+    ],
+    aiReason: llmResult.usedLLM
+      ? "LLM-assisted triage returned a structured candidate."
+      : llmResult.warning ?? "Deterministic fallback used.",
+  };
 
   if (candidate !== null) {
     // LLM succeeded — normalize candidate, fall back field-by-field for safety
@@ -254,4 +291,13 @@ export async function runHybridCustomerTriageAgent(
       normalizationApplied: false,
     },
   };
+}
+
+function safeParseLLMTriageCandidate(raw: string): LLMTriageCandidate | null {
+  try {
+    const parsed = JSON.parse(raw) as LLMTriageCandidate;
+    return typeof parsed === "object" && parsed !== null ? parsed : null;
+  } catch {
+    return null;
+  }
 }

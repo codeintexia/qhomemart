@@ -15,6 +15,7 @@ import type {
   StaffInsightOutput,
   TriageOutput,
 } from "@/types/mas-types";
+import { getRuntimeModeSummary } from "@/lib/agent-runtime-config";
 
 export function runDecisionSynthesizerAgent({
   triage,
@@ -31,6 +32,7 @@ export function runDecisionSynthesizerAgent({
   bundle: BundleOutput;
   staffInsight: StaffInsightOutput;
 }): DecisionSynthesizerOutput {
+  const runtime = getRuntimeModeSummary();
   const highRisks = risks.risks.filter((risk) => risk.severity === "Tinggi");
   const productCount = products.sectionA.length + products.sectionB.length;
   const conflictsDetected: string[] = [];
@@ -67,6 +69,12 @@ export function runDecisionSynthesizerAgent({
 
   return {
     agentName: "Decision Synthesizer / Arbitration Agent",
+    requestedMode: runtime.requestedMode,
+    executionMode: "deterministic",
+    effectiveMode: "deterministic",
+    usedLLM: false,
+    provider: runtime.provider,
+    model: runtime.model,
     finalRecommendation,
     finalConfidence: confidence,
     decisionRationale,
@@ -82,6 +90,12 @@ export function runDecisionSynthesizerAgent({
       ? "Perlu validasi staff untuk risiko tinggi, budget constraint, atau ketersediaan layanan."
       : "Tidak ada konflik besar pada workflow deterministic.",
     rejectedAlternatives,
+    warnings: [
+      ...runtime.warnings,
+      ...(runtime.requestedMode === "llm-assisted"
+        ? ["Decision Synthesizer LLM narrative synthesis is not active in dashboard preview. Deterministic arbitration used."]
+        : []),
+    ],
     recommendedNextAction:
       staffInsight.businessInsight.bundleOpportunity.length > 0
         ? `Validasi paket "${staffInsight.businessInsight.bundleOpportunity}" dan lanjutkan follow-up staff.`
