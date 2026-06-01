@@ -71,19 +71,19 @@ export function LogsAudit({ workflow }: { workflow: WorkflowRunResult }) {
     <section className="space-y-6">
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-red-200">Audit Log</p>
-        <h2 className="mt-2 text-3xl font-semibold text-white">Audit Trail & Workflow Evidence</h2>
+        <h2 className="mt-2 text-3xl font-semibold text-white">Audit Trail & Workflow Evidence — Jejak Audit dan Bukti Workflow</h2>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
           Trace keputusan, fallback, human review, output workflow, dan evidence untuk setiap proses operasional.
         </p>
       </div>
 
       <div className="flex flex-wrap gap-2 text-xs font-semibold text-slate-300">
-        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Last updated: 31 Mei 2026, 14:25</span>
-        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Audit period: Today</span>
+        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Update terakhir: 31 Mei 2026, 14:25</span>
+        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Periode audit: hari ini</span>
         <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Workflow: Retail Workflow v1.6</span>
-        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Execution Mode: {workflow.effectiveMode === "llm-assisted" ? "LLM-Assisted Hybrid" : "Deterministic Demo"}</span>
-        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">LLM Available: {workflow.llmAvailable ? "Yes" : "No"}</span>
-        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Fallback Used: {workflow.fallbackUsed ? "Yes" : "No"}</span>
+        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Execution Mode: {workflow.effectiveMode === "llm-assisted" ? "LLM-Assisted Hybrid" : "Deterministic"}</span>
+        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">LLM tersedia: {workflow.llmAvailable ? "Ya" : "Tidak"}</span>
+        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Fallback digunakan: {workflow.fallbackUsed ? "Ya" : "Tidak"}</span>
         <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Governance: Audit Policy v1.1</span>
         <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Audit status: Active</span>
       </div>
@@ -102,21 +102,21 @@ export function LogsAudit({ workflow }: { workflow: WorkflowRunResult }) {
       </div>
 
       <DataTable
-        title="Audit Filters"
+        title="Audit Filters — Filter Audit"
         minWidthClass="min-w-[760px]"
         headers={["Filter", "Current Value"]}
         rows={filterRows}
       />
 
       <DataTable
-        title="Workflow Interaction Log"
+        title="Workflow Interaction Log — Log Interaksi Workflow"
         minWidthClass="min-w-[1900px]"
         headers={["Step", "Source Agent", "Target Agent", "Requested Mode", "Effective Mode", "Used LLM", "Input", "Output", "Confidence", "Reasoning Basis", "Decision Dependency", "Timestamp", "Fallback", "Fallback Reason", "Human Review"]}
         rows={interactionRows}
       />
 
       <DataTable
-        title="Audit Event Table"
+        title="Audit Event Table — Tabel Event Audit"
         minWidthClass="min-w-[1900px]"
         headers={["Time", "Event ID", "Workflow", "Entity ID", "Actor", "Input", "Output", "Rule / Model", "Fallback", "Human Review", "Evidence", "Severity", "Status"]}
         rows={auditRows}
@@ -124,13 +124,13 @@ export function LogsAudit({ workflow }: { workflow: WorkflowRunResult }) {
 
       <div className="grid gap-4 xl:grid-cols-2">
         <DataTable
-          title="Human Review Tracking"
+          title="Human Review Tracking — Pelacakan Human Review"
           minWidthClass="min-w-[820px]"
           headers={["Event ID", "Review Required", "Reviewed By", "Review Time", "Review Result"]}
           rows={reviewRows}
         />
         <DataTable
-          title="Manual Override Tracking"
+          title="Manual Override Tracking — Pelacakan Manual Override"
           minWidthClass="min-w-[960px]"
           headers={["Event ID", "Override By", "Override Reason", "Previous Output", "Final Output"]}
           rows={overrideRows}
@@ -138,7 +138,7 @@ export function LogsAudit({ workflow }: { workflow: WorkflowRunResult }) {
       </div>
 
       <DataTable
-        title="Open Audit Issues"
+        title="Open Audit Issues — Isu Audit Terbuka"
         minWidthClass="min-w-[960px]"
         headers={["Issue", "Workflow", "Severity", "Owner", "Next Action", "Status"]}
         rows={issueRows}

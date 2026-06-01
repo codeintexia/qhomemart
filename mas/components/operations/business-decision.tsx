@@ -3,20 +3,20 @@ import type { WorkflowRunResult } from "@/types/mas-types";
 
 export function BusinessDecision({ workflow }: { workflow: WorkflowRunResult }) {
   const outputs = [
-    { label: "Bundle opportunity", value: workflow.businessInsight.bundleOpportunity || "Paket Kamar Mandi Lebih Aman", icon: BriefcaseBusiness },
-    { label: "Staff summary", value: workflow.staffSummary || "Generated", icon: Users },
-    { label: "Service guidance", value: workflow.services.sectionC.length > 0 ? "Optional service guidance generated" : "Optional service guidance available when relevant", icon: Target },
-    { label: "Marketing signal", value: "Caregiver household", icon: Megaphone },
-    { label: "Customer pain cluster", value: "Bathroom safety for elderly", icon: Target },
+    { label: "Peluang paket", value: workflow.businessInsight.bundleOpportunity || "Paket Kamar Mandi Lebih Aman", icon: BriefcaseBusiness },
+    { label: "Ringkasan staff", value: workflow.staffSummary || "Tersedia", icon: Users },
+    { label: "Arahan layanan", value: workflow.services.sectionC.length > 0 ? "Arahan layanan opsional tersedia" : "Arahan layanan tersedia saat relevan", icon: Target },
+    { label: "Sinyal marketing", value: "Caregiver household", icon: Megaphone },
+    { label: "Klaster masalah pelanggan", value: "Bathroom safety for elderly", icon: Target },
   ];
 
   return (
     <section className="space-y-5">
       <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-red-200">Business Decision</p>
-        <h2 className="mt-2 text-3xl font-semibold text-white">Stakeholder decision support</h2>
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-red-200">Business Decision — Keputusan Bisnis</p>
+        <h2 className="mt-2 text-3xl font-semibold text-white">Decision support untuk stakeholder</h2>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
-          This panel uses workflow-derived current-scope output and avoids revenue, live stock, or connected-system claims.
+          Panel ini memakai output cakupan saat ini dari Workflow dan tidak mengklaim revenue, live stock, atau connected-system yang belum terhubung.
         </p>
       </div>
 
@@ -40,12 +40,12 @@ export function BusinessDecision({ workflow }: { workflow: WorkflowRunResult }) 
       </div>
 
       <div className="rounded-lg border border-emerald-300/20 bg-emerald-400/10 p-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-200">Recommended stakeholder action</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-200">Rekomendasi tindakan stakeholder</p>
         <p className="mt-3 text-2xl font-semibold leading-snug text-white">
-          Create a guided safety bundle campaign and staff-assisted selling flow.
+          Buat campaign paket keamanan terpandu dan alur penjualan dengan bantuan staff.
         </p>
         <p className="mt-3 text-sm leading-6 text-emerald-100/80">
-          The current workflow supports a clear campaign signal while keeping service availability and connected-system claims scoped to current scope.
+          Workflow saat ini memberi sinyal campaign yang jelas sambil menjaga klaim service availability dan connected-system tetap sesuai cakupan saat ini.
         </p>
       </div>
     </section>

@@ -3,7 +3,9 @@
  *
  * Role: receives outputs from all previous workflow agents, compares their
  * recommendations, detects operational conflicts, and produces the final
- * auditable recommendation. This agent is deterministic in the current scope.
+ * auditable recommendation. This agent is deterministic by default for
+ * reproducibility, with optional LLM-assisted narrative synthesis available
+ * through async workflow execution when provider credentials are configured.
  */
 
 import type {

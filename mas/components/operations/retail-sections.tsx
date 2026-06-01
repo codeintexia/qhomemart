@@ -546,15 +546,15 @@ export function InsightsSection() {
   return (
     <RetailSection
       eyebrow="Insight Bisnis"
-      title="Decision Intelligence Queue"
+      title="Decision Intelligence Queue — Antrian Keputusan Bisnis"
       description="Ringkasan sinyal bisnis, bukti data, dampak, dependency, dan keputusan yang perlu ditindaklanjuti."
     >
       <div className="flex flex-wrap gap-2 text-xs font-semibold text-slate-300">
         <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Update terakhir: 31 Mei 2026, 14:25</span>
-        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Analysis period: 14 hari terakhir</span>
-        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Data sources: Inquiry, Product, Service, Follow-up</span>
+        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Periode analisis: 14 hari terakhir</span>
+        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Sumber data: Inquiry, Product, Service, Follow-up</span>
         <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Workflow: Decision Workflow v1.3</span>
-        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Review: Management reviewed</span>
+        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Review: sudah ditinjau manajemen</span>
       </div>
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">

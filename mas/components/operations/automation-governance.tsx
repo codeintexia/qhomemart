@@ -65,16 +65,16 @@ export function AutomationGovernance() {
     <section className="space-y-6">
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-red-200">AI & Automation</p>
-        <h2 className="mt-2 text-3xl font-semibold text-white">Automation Workflow & Governance</h2>
+        <h2 className="mt-2 text-3xl font-semibold text-white">Automation Workflow & Governance — Tata Kelola Workflow Automation</h2>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
           Pantauan workflow automation, human review, fallback, routing, dan audit untuk mendukung operasi retail.
         </p>
       </div>
 
       <div className="flex flex-wrap gap-2 text-xs font-semibold text-slate-300">
-        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Last updated: 31 Mei 2026, 14:25</span>
-        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Monitoring period: Today</span>
-        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Automation workflow: Retail Automation v1.6</span>
+        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Update terakhir: 31 Mei 2026, 14:25</span>
+        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Periode monitoring: hari ini</span>
+        <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Automation Workflow: Retail Automation v1.6</span>
         <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Routing policy: Model Routing Policy v0.9</span>
         <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Human review: Enabled</span>
         <span className="rounded-full border border-white/10 bg-slate-950/45 px-3 py-1.5">Audit: Active</span>
@@ -95,7 +95,7 @@ export function AutomationGovernance() {
 
       <div className="rounded-lg border border-white/10 bg-white/[0.055] p-5">
         <div className="mb-4">
-          <h3 className="text-lg font-semibold text-white">Workflow Automation Flow</h3>
+          <h3 className="text-lg font-semibold text-white">Workflow Automation Flow — Alur Kerja Automation</h3>
           <p className="mt-1 text-sm leading-6 text-slate-400">Flow menampilkan business task. Agent hanya supporting role di bawah setiap langkah.</p>
         </div>
         <div className="overflow-x-auto pb-2">
@@ -115,14 +115,14 @@ export function AutomationGovernance() {
       </div>
 
       <DataTable
-        title="Automation Operations Table"
+        title="Automation Operations Table — Tabel Operasi Automation"
         minWidthClass="min-w-[1760px]"
         headers={["Workflow", "Automation Role", "Business Task", "Input Source", "Output", "Human Review", "Fallback Policy", "Owner", "Operational Impact", "Risk Controlled", "Status"]}
         rows={automationRows}
       />
 
       <DataTable
-        title="Automation Exception Queue"
+        title="Automation Exception Queue — Antrian Exception Automation"
         minWidthClass="min-w-[1120px]"
         headers={["Exception", "Workflow", "Reason", "Owner", "Next Action", "Status"]}
         rows={exceptionRows}

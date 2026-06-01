@@ -1,81 +1,89 @@
 # MAS QHomemart Retail OS
 
-MAS QHomemart adalah AI-Assisted Retail Operating System untuk mengubah masalah pelanggan menjadi workflow retail yang dapat ditindaklanjuti: triage kebutuhan, risk assessment, product match, service guidance, package recommendation, staff follow-up, business insight, governance, dan audit trail.
+MAS QHomemart adalah **AI-Assisted Retail Operating System** untuk mengubah masalah pelanggan menjadi Workflow retail yang dapat ditindaklanjuti: triage kebutuhan, risk assessment, product match, service guidance, package recommendation, staff follow-up, business insight, governance, dan Audit Log.
 
-## Project Overview
+## Ringkasan Project
 
-Dashboard bersifat business-first dan table-first. AI automation adalah salah satu layer observability, bukan identitas tunggal produk. Source code menunjukkan workflow multi-agent yang reproducible dan dapat diaudit.
+Dashboard bersifat business-first dan table-first. AI automation adalah salah satu layer observability, bukan identitas tunggal produk. Source code menunjukkan Multi-Agent Workflow yang reproducible, memiliki Reasoning antar Agent, output terstruktur, Fallback, Human Review, dan Audit Log.
 
-## AI Agent Competition Context
+## Konteks AI Agent Competition
 
-Project ini disiapkan untuk AI Agent Competition dengan fokus pada kualitas reasoning agent, kolaborasi antar agent, dampak dunia nyata, kejelasan arsitektur, reproducibility, auditability, fallback governance, dan human review.
+Project ini disiapkan untuk AI Agent Competition dengan fokus pada kualitas Reasoning Agent, kolaborasi antar Agent, dampak dunia nyata, kejelasan arsitektur, reproducibility, auditability, Fallback governance, dan Human Review.
 
-## Business Problem
+## Masalah Bisnis
 
-Pelanggan retail sering menjelaskan kebutuhan dengan bahasa natural. Sistem ini mengubah inquiry menjadi demand cluster, risk assessment, rekomendasi paket, service dependency, staff summary, business insight, dan audit trail.
+Pelanggan retail sering menjelaskan kebutuhan dengan bahasa natural, bukan format SKU. Sistem ini mengubah inquiry menjadi demand cluster, risk assessment, rekomendasi paket, service dependency, staff summary, business insight, dan Audit Log yang bisa ditinjau ulang.
 
 ## Important URLs
 
 - Public Home: https://qhomemart.vercel.app/
 - Operations Dashboard: https://qhomemart.vercel.app/operations
 
-## Provider-Agnostic LLM-Assisted Mode
+## Mode Provider-Agnostic LLM-Assisted
 
 Deterministic Mode:
 - Default mode.
-- Tidak membutuhkan API key.
-- Cocok untuk local judging dan reproducibility.
+- Tidak membutuhkan API Key.
+- Cocok untuk penilaian lokal dan reproducibility.
 - Downstream business agents tetap deterministic/rule-based.
 
 LLM-Assisted Mode:
 - Diaktifkan dengan `AGENT_EXECUTION_MODE=llm-assisted`.
 - Provider yang didukung: `sumopod`, `openai`, dan `gemini`.
-- Optional dan hanya berlaku untuk selected agents.
-- Jika `LLM_API_KEY`, `LLM_BASE_URL`, atau `LLM_MODEL` tidak tersedia, workflow fallback ke deterministic mode tanpa crash.
-- Dashboard preview menggunakan deterministic workflow by default. Async workflow/script dapat dipakai untuk inspeksi hybrid mode.
+- Opsional dan hanya berlaku untuk selected agents.
+- Satu API Key cukup untuk beberapa LLM agents. Tidak perlu 6 API Key untuk 6 Agent.
+- Jika API Key, base URL, model, atau provider call tidak tersedia, Workflow Fallback ke deterministic mode tanpa crash.
+- Dashboard preview menggunakan deterministic Workflow by default. Async workflow/script dapat dipakai untuk inspeksi hybrid mode.
 
-## API Key Strategy
+LLM agents:
 
-Satu `LLM_API_KEY` dapat mendukung selected agent roles. Separate API key per agent tidak diperlukan. Secret harus server-side only, tidak memakai `NEXT_PUBLIC_`, tidak masuk `next.config`, dan tidak ditampilkan di UI/log.
+- Agent Klasifikasi Permintaan Pelanggan (Customer Triage Agent)
+- Agent Sintesis Keputusan (Decision Synthesizer Agent)
 
-## Actual Agent List
+Agent lain tetap deterministic untuk menjaga reproducibility, stabilitas rekomendasi, dan auditability.
+
+## Strategi API Key
+
+Satu API Key dapat mendukung beberapa Agent yang memakai LLM. Separate API Key per Agent tidak diperlukan. Secret harus server-side only, tidak memakai `NEXT_PUBLIC_`, tidak masuk `next.config`, tidak di-commit melalui `.env.local`, dan tidak ditampilkan di UI/log.
+
+## Daftar Agent
 
 | Agent | File | Mode |
 | --- | --- | --- |
-| Customer Triage Agent | `agents/customer-triage-agent.ts` | Deterministic default, optional LLM-assisted interpretation |
-| Context & Risk Agent | `agents/context-risk-agent.ts` | Deterministic |
-| Product Match Agent | `agents/product-match-agent.ts` | Deterministic |
-| Service Match Agent | `agents/service-match-agent.ts` | Deterministic |
-| Bundle Strategy Agent | `agents/bundle-strategy-agent.ts` | Deterministic |
-| Staff & Insight Agent | `agents/staff-insight-agent.ts` | Deterministic |
-| Decision Synthesizer / Arbitration Agent | `agents/decision-synthesizer-agent.ts` | Deterministic default, optional LLM-assisted narrative synthesis in async workflow |
+| Agent Klasifikasi Permintaan Pelanggan (Customer Triage Agent) | `agents/customer-triage-agent.ts` | Deterministic default, optional LLM-assisted interpretation |
+| Agent Konteks dan Risiko (Context & Risk Agent) | `agents/context-risk-agent.ts` | Deterministic |
+| Agent Pencocokan Produk (Product Match Agent) | `agents/product-match-agent.ts` | Deterministic |
+| Agent Pencocokan Layanan (Service Match Agent) | `agents/service-match-agent.ts` | Deterministic |
+| Agent Strategi Paket Solusi (Bundle Strategy Agent) | `agents/bundle-strategy-agent.ts` | Deterministic |
+| Agent Rekomendasi Tindak Lanjut Staf (Staff & Insight Agent) | `agents/staff-insight-agent.ts` | Deterministic |
+| Agent Sintesis Keputusan (Decision Synthesizer Agent) | `agents/decision-synthesizer-agent.ts` | Deterministic default, optional LLM-assisted narrative synthesis melalui async Workflow |
 
-## Actual Workflow Files
+## File Workflow
 
 - `workflows/bathroom-safety-workflow.ts`
 - `workflows/plumbing-leak-workflow.ts`
 - `workflows/interaction-logger.ts`
 
-Optional LLM-assisted mode is available for Customer Triage Agent and Decision Synthesizer Agent. The dashboard preview remains deterministic by default for reproducibility, while async workflow/script execution can be used to inspect LLM-assisted triage and decision synthesis when valid provider credentials are configured. Other business-rule agents remain deterministic by design.
+Mode LLM-assisted tersedia secara opsional untuk Agent Klasifikasi Permintaan Pelanggan (Customer Triage Agent) dan Agent Sintesis Keputusan (Decision Synthesizer Agent). Dashboard preview tetap deterministic by default untuk reproducibility. Async Workflow/script execution dapat digunakan untuk inspeksi LLM-assisted triage dan decision synthesis saat provider credentials valid. Agent berbasis business rule lain tetap deterministic by design.
 
-## Demo Scenarios
+## Skenario Demo
 
 - `bathroom-safety`: kamar mandi licin untuk lansia.
 - `plumbing-leak`: kebocoran pipa bawah sink dapur.
 
-Both scenarios run through the same multi-agent workflow.
+Kedua skenario berjalan melalui Multi-Agent Workflow yang sama.
 
-## Interaction Log and Auditability
+## Interaction Log dan Auditability
 
-Workflow output includes `agentOutputs`, `interactionLog`, `finalDecision`, `businessImpact`, `reproducibilityNote`, requested/effective execution mode, `usedLLM`, fallback status, fallback reason, warnings, and human review status.
+Workflow output mencakup `agentOutputs`, `interactionLog`, `finalDecision`, `businessImpact`, `reproducibilityNote`, requested/effective execution mode, `usedLLM`, Fallback status, Fallback reason, warnings, dan Human Review status.
 
-## Human Review and Fallback Governance
+## Human Review dan Fallback Governance
 
-Human review is required for high-risk cases, service uncertainty, or arbitration conflicts. If LLM-assisted mode is requested but unavailable, deterministic fallback is used and recorded in logs.
+Human Review diperlukan untuk kasus high-risk, service uncertainty, atau arbitration conflicts. Customer-facing output tetap membutuhkan Human Review. Jika LLM-assisted mode diminta tetapi provider tidak tersedia, deterministic Fallback digunakan dan dicatat di log.
 
 ## Local Development
 
-From repository root:
+Dari root repository:
 
 ```bash
 npm install --prefix mas
@@ -83,7 +91,7 @@ npm --prefix mas run build
 npm --prefix mas run dev
 ```
 
-From `mas/`:
+Dari folder `mas/`:
 
 ```bash
 npm install
@@ -96,15 +104,15 @@ Open:
 - http://localhost:3000/
 - http://localhost:3000/operations
 
-Inspect workflow:
+Inspect Workflow:
 
 ```bash
 npm --prefix mas exec tsx -- -e "import { runAllDemoWorkflows } from './workflows/bathroom-safety-workflow'; console.log(runAllDemoWorkflows().map((run) => ({ scenarioId: run.scenarioId, mode: run.effectiveMode, steps: run.interactionLog.length })));"
 ```
 
-## Optional LLM Setup
+## Setup LLM Opsional
 
-No `.env.local` is required for deterministic local run.
+`.env.local` tidak dibutuhkan untuk deterministic local run.
 
 ```bash
 cd mas
@@ -141,14 +149,14 @@ SUMOPOD_MODEL=your_sumopod_model
 SUMOPOD_API_KEY=your_key_here
 ```
 
-Then:
+Lalu:
 
 ```bash
 npm run build
 npm run dev
 ```
 
-## Actual Project Structure
+## Struktur Project Aktual
 
 ```text
 mas/
@@ -168,18 +176,18 @@ mas/
 └── .env.example
 ```
 
-## Known Limitations
+## Batasan Saat Ini
 
-- Dashboard preview may run deterministic workflow by default.
-- LLM-assisted mode is optional and depends on valid provider credentials. The system supports OpenAI, Gemini, and Sumopod-compatible provider calls through the provider-agnostic LLM client. If credentials are missing, invalid, or the provider call fails, the workflow falls back safely to deterministic mode.
-- Downstream business agents are deterministic by design.
-- Product catalog, stock, WhatsApp, price, payment, auth, and database are not live integrations.
-- No autonomous full decision-making; human review remains explicit.
+- Dashboard preview berjalan deterministic Workflow by default.
+- LLM-assisted mode bersifat opsional dan bergantung pada provider credentials yang valid. Sistem mendukung OpenAI, Gemini, dan Sumopod-compatible provider calls melalui provider-agnostic LLM client. Jika credentials kosong, invalid, atau provider call gagal, Workflow Fallback dengan aman ke deterministic mode.
+- Downstream business agents deterministic by design.
+- Product catalog, stock, WhatsApp, price, payment, auth, dan database belum live integration.
+- Tidak ada autonomous full decision-making; Human Review tetap eksplisit.
 
 ## Competition Evidence
 
-1. Kualitas Reasoning Agent: `agentOutputs` includes reasoning basis, confidence, decision criteria, rejected alternatives, structured output, and selected LLM-assisted metadata where available.
-2. Kolaborasi Antar Agent: sequential workflow records output dependency, interaction logs, and Decision Synthesizer arbitration.
-3. Dampak Dunia Nyata: supports inquiry triage, package recommendation, service dependency, staff follow-up, and operational efficiency.
-4. Kejelasan Arsitektur Sistem: source is separated into `agents/`, `workflows/`, `data/`, `types/`, runtime config, and dashboard observability.
-5. Reproducibility: deterministic mode runs without API key, includes two scenarios, and is validated with install/build/dev commands.
+1. **Kualitas Reasoning Agent**: setiap Agent memiliki peran, input, output, Confidence Score, `reasoningBasis`, `decisionCriteria`, `rejectedAlternatives`, dan `structuredOutput`.
+2. **Kolaborasi Antar Agent**: output Agent sebelumnya menjadi input Agent berikutnya. Decision Synthesizer menggabungkan hasil Agent dan Interaction Log mencatat komunikasi antar Agent.
+3. **Dampak Dunia Nyata**: sistem mendukung klasifikasi inquiry, package recommendation, service coordination, staff follow-up, dan efisiensi operasional retail.
+4. **Kejelasan Arsitektur Sistem**: source dipisahkan ke `agents/`, `workflows/`, `data/`, `types/`, `ai/`, runtime config, dan dashboard observability.
+5. **Reproducibility**: deterministic mode berjalan tanpa API Key, dua skenario demo tersedia, dan local Build dapat dijalankan.
