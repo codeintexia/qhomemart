@@ -48,13 +48,15 @@ Satu `LLM_API_KEY` dapat mendukung selected agent roles. Separate API key per ag
 | Service Match Agent | `agents/service-match-agent.ts` | Deterministic |
 | Bundle Strategy Agent | `agents/bundle-strategy-agent.ts` | Deterministic |
 | Staff & Insight Agent | `agents/staff-insight-agent.ts` | Deterministic |
-| Decision Synthesizer / Arbitration Agent | `agents/decision-synthesizer-agent.ts` | Deterministic arbitration with hybrid metadata |
+| Decision Synthesizer / Arbitration Agent | `agents/decision-synthesizer-agent.ts` | Deterministic default, optional LLM-assisted narrative synthesis in async workflow |
 
 ## Actual Workflow Files
 
 - `workflows/bathroom-safety-workflow.ts`
 - `workflows/plumbing-leak-workflow.ts`
 - `workflows/interaction-logger.ts`
+
+Optional LLM-assisted mode is available for Customer Triage Agent and Decision Synthesizer Agent. The dashboard preview remains deterministic by default for reproducibility, while async workflow/script execution can be used to inspect LLM-assisted triage and decision synthesis when valid provider credentials are configured. Other business-rule agents remain deterministic by design.
 
 ## Demo Scenarios
 

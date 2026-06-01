@@ -20,7 +20,9 @@
  *
  *   runBathroomSafetyWorkflowAsync(input?)
  *     Async. Uses runHybridCustomerTriageAgent() which checks for optional LLM.
- *     For future use when an LLM provider integration is implemented.
+ *     Can use optional LLM-assisted triage and decision synthesis when provider
+ *     credentials are configured. If credentials are missing or provider calls
+ *     fail, the workflow falls back to deterministic execution.
  *     Not used by the public demo UI.
  *
  * Current scope only. Not connected to real QHomemart production systems.

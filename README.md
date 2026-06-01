@@ -44,7 +44,7 @@ Satu `LLM_API_KEY` dapat mendukung selected agent roles. Separate API key per ag
 6. Staff & Insight Agent
 7. Decision Synthesizer / Arbitration Agent
 
-Only Customer Triage Agent has optional LLM-assisted interpretation in current scope. Decision Synthesizer exposes hybrid execution metadata, but dashboard preview uses deterministic arbitration. Downstream business agents remain deterministic by design.
+Optional LLM-assisted mode is available for Customer Triage Agent and Decision Synthesizer Agent. The dashboard preview remains deterministic by default for reproducibility, while async workflow/script execution can be used to inspect LLM-assisted triage and decision synthesis when valid provider credentials are configured. Downstream business agents remain deterministic by design.
 
 ## Actual Workflow Files
 
