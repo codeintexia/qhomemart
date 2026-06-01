@@ -15,7 +15,7 @@ Customer sering menjelaskan masalah rumah dalam bahasa natural, bukan SKU. MAS Q
 - Public Home: https://qhomemart.vercel.app/
 - Operations Dashboard: https://qhomemart.vercel.app/operations
 
-## Execution Modes
+## Provider-Agnostic LLM-Assisted Mode
 
 Deterministic Mode:
 - Default mode.
@@ -25,6 +25,7 @@ Deterministic Mode:
 
 LLM-Assisted Mode:
 - Diaktifkan dengan `AGENT_EXECUTION_MODE=llm-assisted`.
+- Provider yang didukung: `sumopod`, `openai`, dan `gemini`.
 - Hanya selected agents yang boleh memakai LLM-assisted support.
 - Jika `LLM_API_KEY` atau konfigurasi LLM tidak tersedia, sistem fallback ke deterministic mode tanpa crash.
 - Dashboard preview tetap deterministic by default; async workflow/script dapat dipakai untuk inspeksi hybrid mode.
@@ -100,12 +101,32 @@ cp .env.example .env.local
 
 Edit `.env.local`:
 
+OpenAI optional:
+
+```bash
+AGENT_EXECUTION_MODE=llm-assisted
+LLM_PROVIDER=openai
+OPENAI_API_KEY=your_key_here
+OPENAI_MODEL=gpt-5.4-mini
+```
+
+Gemini optional:
+
+```bash
+AGENT_EXECUTION_MODE=llm-assisted
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=your_key_here
+GEMINI_MODEL=gemini-3-flash-preview
+```
+
+Sumopod optional:
+
 ```bash
 AGENT_EXECUTION_MODE=llm-assisted
 LLM_PROVIDER=sumopod
-LLM_BASE_URL=https://api.sumopod.com/v1
-LLM_MODEL=your-model
-LLM_API_KEY=your-server-side-key
+SUMOPOD_BASE_URL=your_sumopod_base_url
+SUMOPOD_MODEL=your_sumopod_model
+SUMOPOD_API_KEY=your_key_here
 ```
 
 Then:

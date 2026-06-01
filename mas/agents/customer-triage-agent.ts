@@ -246,6 +246,9 @@ export async function runHybridCustomerTriageAgent(
   const candidate = llmResult.usedLLM
     ? safeParseLLMTriageCandidate(llmResult.output)
     : null;
+  const candidateWarning = llmResult.usedLLM && candidate === null
+    ? "LLM returned unstructured or invalid triage output. Deterministic structured output preserved."
+    : undefined;
 
   const aiMeta = {
     aiMode: llmResult.usedLLM ? "llm-assisted" as const : "deterministic-fallback" as const,
@@ -262,6 +265,7 @@ export async function runHybridCustomerTriageAgent(
       ...runtime.warnings,
       ...(llmResult.warning ? [llmResult.warning] : []),
       ...(llmResult.error ? [llmResult.error] : []),
+      ...(candidateWarning ? [candidateWarning] : []),
     ],
     aiReason: llmResult.usedLLM
       ? "LLM-assisted triage returned a structured candidate."

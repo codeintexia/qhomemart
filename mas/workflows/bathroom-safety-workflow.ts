@@ -32,7 +32,7 @@ import { runProductMatchAgent } from "@/agents/product-match-agent";
 import { runServiceMatchAgent } from "@/agents/service-match-agent";
 import { runBundleStrategyAgent } from "@/agents/bundle-strategy-agent";
 import { runStaffInsightAgent } from "@/agents/staff-insight-agent";
-import { runDecisionSynthesizerAgent } from "@/agents/decision-synthesizer-agent";
+import { runDecisionSynthesizerAgent, runDecisionSynthesizerAgentAsync } from "@/agents/decision-synthesizer-agent";
 import { createInteractionLogEntry } from "@/workflows/interaction-logger";
 import { getLLMTriageAvailability } from "@/ai/llm-triage-adapter";
 import { getRuntimeModeSummary } from "@/lib/agent-runtime-config";
@@ -521,5 +521,66 @@ export async function runBathroomSafetyWorkflowAsync(
   const customerInput = input ?? DEFAULT_INPUT;
   const hybridTriage = await runHybridCustomerTriageAgent(customerInput);
   const { aiMeta, ...triage } = hybridTriage;
-  return buildWorkflowResult(customerInput, triage, aiMeta);
+  const result = buildWorkflowResult(customerInput, triage, aiMeta);
+  const decision = await runDecisionSynthesizerAgentAsync({
+    triage,
+    risks: result.risks,
+    products: result.products,
+    services: result.services,
+    bundle: result.bundle,
+    staffInsight: {
+      staffSummary: result.staffSummary,
+      businessInsight: result.businessInsight,
+    },
+  });
+  const usedAnyLLM = Boolean(aiMeta.usedLLM || decision.usedLLM);
+  const fallbackUsed = result.requestedMode === "llm-assisted" && !usedAnyLLM;
+  const fallbackReason = fallbackUsed
+    ? result.fallbackReason
+    : "None";
+  const warnings = Array.from(new Set([...result.warnings, ...decision.warnings]));
+  const lastLogIndex = result.interactionLog.length - 1;
+  const updatedInteractionLog = [...result.interactionLog];
+  updatedInteractionLog[lastLogIndex] = {
+    ...updatedInteractionLog[lastLogIndex],
+    executionMode: decision.executionMode,
+    effectiveMode: decision.effectiveMode,
+    usedLLM: decision.usedLLM,
+    provider: decision.provider,
+    model: decision.model,
+    outputSummary: decision.finalRecommendation,
+    output: decision.finalRecommendation,
+    fallbackStatus: decision.usedLLM ? "LLM-assisted narrative synthesis used" : updatedInteractionLog[lastLogIndex].fallbackStatus,
+    fallbackReason: decision.usedLLM ? "None" : updatedInteractionLog[lastLogIndex].fallbackReason,
+    warnings: decision.warnings,
+    structuredOutput: decision as unknown as Record<string, unknown>,
+  };
+  const updatedAgentOutputs = result.agentOutputs.map((agentOutput) =>
+    agentOutput.agentName === "Decision Synthesizer / Arbitration Agent"
+      ? {
+          ...agentOutput,
+          executionMode: decision.executionMode,
+          effectiveMode: decision.effectiveMode,
+          usedLLM: decision.usedLLM,
+          provider: decision.provider,
+          model: decision.model,
+          outputSummary: `${decision.finalRecommendation}. Confidence ${(decision.confidence * 100).toFixed(0)}%.`,
+          warnings: decision.warnings,
+          structuredOutput: decision as unknown as Record<string, unknown>,
+        }
+      : agentOutput
+  );
+
+  return {
+    ...result,
+    executionMode: usedAnyLLM ? "llm-assisted" : "deterministic",
+    effectiveMode: usedAnyLLM ? "llm-assisted" : "deterministic",
+    fallbackUsed,
+    fallbackReason,
+    warnings,
+    decision,
+    finalDecision: decision,
+    interactionLog: updatedInteractionLog,
+    agentOutputs: updatedAgentOutputs,
+  };
 }

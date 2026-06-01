@@ -16,8 +16,81 @@ import type {
   TriageOutput,
 } from "@/types/mas-types";
 import { getRuntimeModeSummary } from "@/lib/agent-runtime-config";
+import { runLLMCompletion } from "@/ai/llm-client";
 
-export function runDecisionSynthesizerAgent({
+type DecisionInput = {
+  triage: TriageOutput;
+  risks: RiskOutput;
+  products: ProductMatchOutput;
+  services: ServiceMatchOutput;
+  bundle: BundleOutput;
+  staffInsight: StaffInsightOutput;
+};
+
+export function runDecisionSynthesizerAgent(input: DecisionInput): DecisionSynthesizerOutput {
+  return buildDeterministicDecision(input);
+}
+
+export async function runDecisionSynthesizerAgentAsync(
+  input: DecisionInput
+): Promise<DecisionSynthesizerOutput> {
+  const deterministicDecision = buildDeterministicDecision(input);
+  const llmResult = await runLLMCompletion({
+    purpose: "decision-synthesis",
+    systemPrompt:
+      "You support Indonesian retail decision narration. Preserve deterministic safety, conflict, dependency, and human review decisions. Return a concise rationale only.",
+    userPrompt: JSON.stringify({
+      finalRecommendation: deterministicDecision.finalRecommendation,
+      detectedConflicts: deterministicDecision.detectedConflicts,
+      dependencySummary: deterministicDecision.dependencySummary,
+      humanReviewRequired: deterministicDecision.humanReviewRequired,
+      recommendedNextAction: deterministicDecision.recommendedNextAction,
+    }),
+    temperature: 0.2,
+    maxTokens: 350,
+  });
+
+  if (!llmResult.usedLLM || !llmResult.output.trim()) {
+    return {
+      ...deterministicDecision,
+      requestedMode: llmResult.requestedMode,
+      effectiveMode: "deterministic",
+      executionMode: "deterministic",
+      provider: llmResult.provider,
+      model: llmResult.model,
+      usedLLM: false,
+      warnings: [
+        ...deterministicDecision.warnings,
+        ...(llmResult.warning ? [llmResult.warning] : []),
+        ...(llmResult.error ? [llmResult.error] : []),
+      ],
+    };
+  }
+
+  const decisionRationale = llmResult.output.trim();
+  const warnings = deterministicDecision.warnings.filter(
+    (warning) => !warning.includes("Decision Synthesizer LLM narrative synthesis is not active")
+  );
+
+  return {
+    ...deterministicDecision,
+    requestedMode: llmResult.requestedMode,
+    effectiveMode: "llm-assisted",
+    executionMode: "llm-assisted",
+    provider: llmResult.provider,
+    model: llmResult.model,
+    usedLLM: true,
+    decisionRationale,
+    rationale: decisionRationale,
+    warnings,
+    structuredOutput: {
+      ...deterministicDecision.structuredOutput,
+      decisionRationale,
+    },
+  };
+}
+
+function buildDeterministicDecision({
   triage,
   risks,
   products,
