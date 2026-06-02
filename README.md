@@ -75,11 +75,11 @@ Customer-facing output membutuhkan Human Review. Kasus high-risk, service uncert
 
 ## Local Demo Bridge
 
-Public Home (`/`) dapat menulis satu demo inquiry event ke `localStorage` saat user mencapai layar hasil/rekomendasi. Operations Dashboard (`/operations`) membaca event terbaru tersebut melalui `localStorage` dan menampilkannya sebagai **Local demo bridge**.
+Public Home (`/`) dapat menghasilkan demo inquiry event saat user mencapai layar hasil/rekomendasi. Operations Dashboard (`/operations`) membaca event terbaru tersebut melalui `localStorage`.
 
 Event dibuat dari input user dan memuat customer need, selected problems, detected cluster, scenario ID, final recommendation, recommended package, service recommendation, Human Review status, Audit status, dan ringkasan Interaction Log.
 
-Bridge ini hanya untuk kredibilitas demo lokal: tidak memakai backend, database, API Key, atau event queue. Implementasi production membutuhkan API/database/event queue, autentikasi, validasi server-side, dan governance data yang sesuai.
+Tujuannya untuk menunjukkan alur **User App → Multi-Agent Workflow → Dashboard Operasional → Audit Log** dalam demo lomba. Bridge ini hanya untuk kredibilitas demo lokal: tidak memakai backend, database, API Key, atau event queue. Ini bukan production sync. Implementasi production membutuhkan API/database/event queue, autentikasi, validasi server-side, dan governance data yang sesuai.
 
 Contoh skenario yang didukung:
 
@@ -87,6 +87,15 @@ Contoh skenario yang didukung:
 - `Pipa bocor di dapur` → `plumbing-leak`
 - `Lampu garasi redup` → `lighting`
 - `Butuh rekomendasi renovasi ringan` → `generic-home-improvement`
+
+## Alur Demo yang Disarankan untuk Juri
+
+1. Buka Public Home.
+2. Masukkan contoh kebutuhan pelanggan: `kamar mandi licin untuk lansia`, `pipa bocor di dapur`, atau `lampu garasi redup`.
+3. Lihat rekomendasi, paket, layanan, dan ringkasan staff yang berubah sesuai input.
+4. Buka Operations Dashboard.
+5. Lihat permintaan terbaru dari Public Home pada Dashboard dan antrean Inquiry / Permintaan.
+6. Buka Audit Log atau AI & Automation untuk melihat jejak Agent, Workflow, Fallback, dan Human Review.
 
 ## Local Development
 

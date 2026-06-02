@@ -53,11 +53,11 @@ export function runStaffInsightAgent(
   if (triage.problemCategory === "Kebocoran pipa dapur") {
     return {
       staffSummary:
-        "Pelanggan membutuhkan bantuan untuk kebocoran pipa dapur. Prioritas awal adalah menghentikan rembesan, mengecek sumber bocor, dan memastikan ukuran fitting atau seal yang tepat sebelum pembelian. Staff sebaiknya menanyakan lokasi bocor, jenis pipa, dan apakah ada kerusakan kabinet atau lantai di sekitar area sink.",
+        "Pelanggan membutuhkan bantuan untuk kebocoran pipa dapur. Prioritas awal adalah menghentikan rembesan dengan sealant, mengecek sumber bocor, dan memastikan ukuran fitting pipa yang tepat sebelum pembelian. Staff sebaiknya menanyakan lokasi bocor, jenis pipa, apakah perlu layanan plumbing, dan apakah survey ringan diperlukan sebelum follow-up.",
       businessInsight: {
         problem: "Kebocoran pipa dapur",
         productCategories: ["Plumbing", "Sealant", "Fitting", "Perawatan dapur"],
-        bundleOpportunity: "Paket Tanggap Bocor Dapur",
+        bundleOpportunity: "Paket Anti Bocor",
         businessOpportunities: [
           "Meningkatkan attach rate produk plumbing dasar",
           "Mengurangi salah beli melalui validasi staff",
@@ -74,9 +74,10 @@ export function runStaffInsightAgent(
   }
 
   if (triage.problemCategory === "Pencahayaan area rumah") {
+    const areaLabel = triage.primarySpace === "Garasi" ? "garasi" : "garasi, teras, atau area kerja";
     return {
       staffSummary:
-        "Pelanggan membutuhkan solusi pencahayaan untuk area rumah. Prioritas awal adalah memastikan lokasi yang kurang terang, jenis fitting, dan kebutuhan tingkat terang. Staff sebaiknya menawarkan lampu LED area terkait dan memvalidasi apakah pemasangan atau penggantian fitting diperlukan.",
+        `Pelanggan membutuhkan solusi pencahayaan rumah untuk area ${areaLabel}. Prioritas awal adalah memilih lampu LED yang sesuai, memastikan jenis fitting, dan mengecek kebutuhan instalasi jika titik lampu atau fixture perlu diganti.`,
       businessInsight: {
         problem: "Pencahayaan area rumah",
         productCategories: ["Pencahayaan", "Elektrikal ringan", "Perawatan rumah"],
@@ -98,7 +99,7 @@ export function runStaffInsightAgent(
   if (triage.problemCategory === "Kebutuhan perbaikan rumah umum") {
     return {
       staffSummary:
-        "Pelanggan menyampaikan kebutuhan perbaikan rumah yang masih umum. Staff perlu mengklarifikasi lokasi, masalah utama, ukuran atau spesifikasi produk, dan prioritas belanja sebelum memberi rekomendasi final.",
+        "Pelanggan menyampaikan kebutuhan perbaikan rumah yang masih umum. Staff perlu melakukan konsultasi kebutuhan rumah, memvalidasi lokasi, masalah utama, ukuran atau spesifikasi produk, lalu memberi rekomendasi awal yang aman. Human Review diperlukan sebelum follow-up pelanggan.",
       businessInsight: {
         problem: "Kebutuhan perbaikan rumah umum",
         productCategories: ["Konsultasi retail", "Perawatan rumah"],
@@ -122,7 +123,7 @@ export function runStaffInsightAgent(
     businessInsight: {
       problem: "Kamar mandi licin untuk lansia",
       productCategories: ["Keamanan rumah", "Sanitary", "Lantai", "Pencahayaan"],
-      bundleOpportunity: "Paket Kamar Mandi Lebih Aman",
+      bundleOpportunity: "Paket Kamar Mandi Aman",
       businessOpportunities: [
         "Meningkatkan peluang pembelian paket",
         "Menghubungkan produk dengan layanan",

@@ -1,4 +1,5 @@
 import { Settings } from "lucide-react";
+import type { DemoInquiryEvent } from "@/lib/demo-event-bridge";
 
 const segmentRows = [
   ["Rumah tangga caregiver", "32", "Keamanan kamar mandi", "Tinggi", "Hemat dulu", "Paket Kamar Mandi Aman", "Instalasi pegangan", "Tinggi", "Rina", "Konfirmasi kebutuhan instalasi dan risiko pengguna lansia", "Follow-up hari ini"],
@@ -261,7 +262,32 @@ export function CustomersSection() {
   );
 }
 
-export function InquirySection() {
+function buildLatestInquiryRow(event: DemoInquiryEvent): string[] {
+  return [
+    event.eventId,
+    new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short" }).format(new Date(event.timestamp)),
+    "Public Home",
+    event.customerNeed,
+    "Tinggi",
+    event.humanReviewRequired ? "Review" : "Sedang",
+    "Hari ini",
+    "Baru",
+    event.recommendedPackage,
+    event.serviceRecommendation,
+    "Belum dihitung",
+    "Ready for Review",
+    "Demo lokal",
+    "Ops Review",
+    "Review rekomendasi dari Public Home sebelum follow-up pelanggan",
+    event.humanReviewRequired ? "Human Review Required" : "Ready for Review",
+  ];
+}
+
+export function InquirySection({ latestDemoEvent }: { latestDemoEvent?: DemoInquiryEvent | null }) {
+  const displayedInquiryRows = latestDemoEvent
+    ? [buildLatestInquiryRow(latestDemoEvent), ...inquiryRows]
+    : inquiryRows;
+
   return (
     <RetailSection
       eyebrow="Inquiry / Permintaan"
@@ -308,7 +334,7 @@ export function InquirySection() {
           "Next Action",
           "Status",
         ]}
-        rows={inquiryRows}
+        rows={displayedInquiryRows}
       />
 
       <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">

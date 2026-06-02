@@ -101,47 +101,11 @@ export function OperationsDashboard({ workflow }: { workflow: WorkflowRunResult 
               </div>
             </header>
 
-            <section className="mb-6 rounded-lg border border-white/10 bg-white/[0.055] p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Local demo bridge</p>
-                  <h2 className="mt-1 text-base font-semibold text-white">Event terbaru dari Public Home</h2>
-                  <p className="mt-1 text-xs leading-5 text-slate-400">
-                    {latestDemoEvent ? "Data demo dari Public Home tersedia. Local demo bridge, bukan production sync." : "Belum ada event dari Public Home. Local demo bridge, bukan production sync."}
-                  </p>
-                </div>
-                <span className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
-                  latestDemoEvent
-                    ? "border-emerald-300/30 bg-emerald-400/10 text-emerald-200"
-                    : "border-white/10 bg-slate-950/45 text-slate-400"
-                }`}>
-                  {latestDemoEvent ? "Event tersedia" : "Menunggu event"}
-                </span>
-              </div>
-
-              {latestDemoEvent && (
-                <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
-                  {[
-                    ["Event ID", latestDemoEvent.eventId],
-                    ["Waktu", new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short" }).format(new Date(latestDemoEvent.timestamp))],
-                    ["Detected cluster", latestDemoEvent.detectedCluster],
-                    ["Kebutuhan pelanggan", latestDemoEvent.customerNeed],
-                    ["Scenario", latestDemoEvent.scenarioName],
-                    ["Selected Workflow", latestDemoEvent.selectedWorkflow],
-                    ["Rekomendasi akhir", latestDemoEvent.finalRecommendation],
-                    ["Recommended package", latestDemoEvent.recommendedPackage],
-                    ["Service recommendation", latestDemoEvent.serviceRecommendation],
-                    ["Human Review", latestDemoEvent.humanReviewRequired ? "Diperlukan" : "Tidak wajib"],
-                    ["Audit status", latestDemoEvent.auditStatus],
-                  ].map(([label, value]) => (
-                    <div key={label} className="rounded-lg border border-white/10 bg-slate-950/35 p-3">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">{label}</p>
-                      <p className="mt-1 text-sm leading-5 text-slate-200">{value}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
+            {activeSection === "home" ? (
+              <LatestPublicInquiryPanel event={latestDemoEvent} />
+            ) : (
+              <PublicInquiryIndicator event={latestDemoEvent} />
+            )}
 
             <div className={activeSection === "home" ? "block" : "hidden"}>
               <CommandOverview />
@@ -152,7 +116,7 @@ export function OperationsDashboard({ workflow }: { workflow: WorkflowRunResult 
             </div>
 
             <div className={activeSection === "inquiries" ? "block" : "hidden"}>
-              <InquirySection />
+              <InquirySection latestDemoEvent={latestDemoEvent} />
             </div>
 
             <div className={activeSection === "products-stock" ? "block" : "hidden"}>
@@ -193,6 +157,72 @@ export function OperationsDashboard({ workflow }: { workflow: WorkflowRunResult 
           </div>
         </main>
       </div>
+    </div>
+  );
+}
+
+function formatEventTime(timestamp: string) {
+  return new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short" }).format(new Date(timestamp));
+}
+
+function LatestPublicInquiryPanel({ event }: { event: DemoInquiryEvent | null }) {
+  return (
+    <section className="mb-6 rounded-lg border border-white/10 bg-white/[0.055] p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Permintaan Terbaru dari Public Home</p>
+          <h2 className="mt-1 text-base font-semibold text-white">{event ? event.customerNeed : "Belum ada permintaan dari Public Home"}</h2>
+          <p className="mt-1 text-xs leading-5 text-slate-400">
+            Demo lokal untuk menghubungkan Public Home dan Dashboard Operasional. Bukan production sync.
+          </p>
+        </div>
+        <span className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
+          event
+            ? "border-emerald-300/30 bg-emerald-400/10 text-emerald-200"
+            : "border-white/10 bg-slate-950/45 text-slate-400"
+        }`}>
+          {event ? "Demo lokal" : "Menunggu inquiry"}
+        </span>
+      </div>
+
+      {event && (
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+          {[
+            ["Waktu", formatEventTime(event.timestamp)],
+            ["Sumber", "Public Home"],
+            ["Kebutuhan Pelanggan", event.customerNeed],
+            ["Klaster Terdeteksi", event.detectedCluster],
+            ["Skenario Workflow", event.scenarioName],
+            ["Rekomendasi Akhir", event.finalRecommendation],
+            ["Rekomendasi Paket", event.recommendedPackage],
+            ["Rekomendasi Layanan", event.serviceRecommendation],
+            ["Status Human Review", event.humanReviewRequired ? "Diperlukan" : "Tidak wajib"],
+            ["Status Audit", event.auditStatus],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-lg border border-white/10 bg-slate-950/35 p-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">{label}</p>
+              <p className="mt-1 text-sm leading-5 text-slate-200">{value}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function PublicInquiryIndicator({ event }: { event: DemoInquiryEvent | null }) {
+  if (!event) {
+    return null;
+  }
+
+  return (
+    <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3">
+      <p className="text-sm font-medium text-slate-300">
+        Permintaan dari Public Home tersedia: <span className="text-white">{event.detectedCluster}</span>
+      </p>
+      <span className="rounded-full border border-emerald-300/30 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-200">
+        Demo lokal
+      </span>
     </div>
   );
 }

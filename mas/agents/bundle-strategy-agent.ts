@@ -80,9 +80,9 @@ export function runBundleStrategyAgent(
 
   const itemNames = sections.flatMap((section) => section.items.map((item) => item.name.toLowerCase()));
   const bundleTitle = itemNames.some((name) => name.includes("sealant") || name.includes("pipa") || name.includes("selang"))
-    ? "Paket Tanggap Bocor Dapur"
+    ? "Paket Anti Bocor"
     : itemNames.some((name) => name.includes("anti-slip") || name.includes("pegangan"))
-        ? "Paket Kamar Mandi Lebih Aman"
+        ? "Paket Kamar Mandi Aman"
         : itemNames.some((name) => name.includes("lampu") || name.includes("fitting"))
           ? "Paket Pencahayaan Area Rumah"
           : "Paket Solusi Kebutuhan Rumah";

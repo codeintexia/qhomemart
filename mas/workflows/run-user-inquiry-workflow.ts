@@ -97,10 +97,29 @@ function getRecommendedPackage(workflow: WorkflowRunResult) {
 }
 
 function getServiceRecommendation(workflow: WorkflowRunResult) {
+  if (workflow.triage.problemCategory === "Pencahayaan area rumah") {
+    return "Cek kebutuhan instalasi: validasi titik lampu, fitting, dan kebutuhan pemasangan sebelum rekomendasi final.";
+  }
+
+  if (workflow.triage.problemCategory === "Kebutuhan perbaikan rumah umum") {
+    return "Konsultasi staff: validasi kebutuhan rumah dan lakukan Human Review sebelum follow-up pelanggan.";
+  }
+
+  if (workflow.triage.problemCategory === "Kamar mandi licin") {
+    const firstService = workflow.services.sectionC[0];
+    return firstService
+      ? `${firstService.service.name}: ${firstService.service.description} Human Review diperlukan jika rekomendasi menyangkut keselamatan lansia.`
+      : "Human Review diperlukan jika rekomendasi menyangkut keselamatan lansia.";
+  }
+
   const firstService =
     workflow.triage.problemCategory === "Kebocoran pipa dapur"
       ? workflow.services.sectionC.find((service) => service.service.name.toLowerCase().includes("plumbing")) ?? workflow.services.sectionC[0]
       : workflow.services.sectionC[0];
+  if (workflow.triage.problemCategory === "Kebocoran pipa dapur" && firstService) {
+    return `${firstService.service.name}: ${firstService.service.description} Pertimbangkan survey ringan jika sumber kebocoran belum jelas.`;
+  }
+
   return firstService
     ? `${firstService.service.name}: ${firstService.service.description}`
     : workflow.services.availabilityNote;
