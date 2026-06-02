@@ -27,8 +27,8 @@ import type {
 /**
  * Runs the Staff & Insight Agent.
  *
- * Produces a fixed staff summary and structured business insight for the
- * bathroom-safety demo. In a production integration phase, this function
+ * Produces deterministic staff summary and structured business insight for
+ * supported local scenarios. In a production integration phase, this function
  * would generate text dynamically from all upstream agent outputs.
  *
  * @param triage    - Output from the Customer Triage Agent
@@ -68,6 +68,49 @@ export function runStaffInsightAgent(
           "Konten edukasi: tanda awal pipa dapur bocor",
           "Promo tematik: paket tanggap bocor",
           "Segmentasi: pemilik rumah, renovasi dapur, perawatan sink",
+        ],
+      },
+    };
+  }
+
+  if (triage.problemCategory === "Pencahayaan area rumah") {
+    return {
+      staffSummary:
+        "Pelanggan membutuhkan solusi pencahayaan untuk area rumah. Prioritas awal adalah memastikan lokasi yang kurang terang, jenis fitting, dan kebutuhan tingkat terang. Staff sebaiknya menawarkan lampu LED area terkait dan memvalidasi apakah pemasangan atau penggantian fitting diperlukan.",
+      businessInsight: {
+        problem: "Pencahayaan area rumah",
+        productCategories: ["Pencahayaan", "Elektrikal ringan", "Perawatan rumah"],
+        bundleOpportunity: "Paket Pencahayaan Area Rumah",
+        businessOpportunities: [
+          "Meningkatkan attach rate produk lampu dan fitting",
+          "Mengarahkan customer ke konsultasi staff sebelum salah beli",
+          "Membaca sinyal kebutuhan perbaikan rumah ringan",
+        ],
+        digitalMarketingOpportunities: [
+          "Konten edukasi: memilih lampu untuk garasi dan area rumah",
+          "Promo tematik: paket pencahayaan rumah",
+          "Segmentasi: pemilik rumah dengan kebutuhan perawatan ringan",
+        ],
+      },
+    };
+  }
+
+  if (triage.problemCategory === "Kebutuhan perbaikan rumah umum") {
+    return {
+      staffSummary:
+        "Pelanggan menyampaikan kebutuhan perbaikan rumah yang masih umum. Staff perlu mengklarifikasi lokasi, masalah utama, ukuran atau spesifikasi produk, dan prioritas belanja sebelum memberi rekomendasi final.",
+      businessInsight: {
+        problem: "Kebutuhan perbaikan rumah umum",
+        productCategories: ["Konsultasi retail", "Perawatan rumah"],
+        bundleOpportunity: "Follow-up Konsultasi Kebutuhan Rumah",
+        businessOpportunities: [
+          "Mengurangi risiko rekomendasi produk yang tidak sesuai",
+          "Mengarahkan inquiry umum menjadi kategori belanja yang jelas",
+          "Meningkatkan kualitas follow-up staff",
+        ],
+        digitalMarketingOpportunities: [
+          "Konten edukasi: cara menjelaskan kebutuhan rumah ke staff",
+          "Segmentasi: customer yang membutuhkan konsultasi produk",
         ],
       },
     };

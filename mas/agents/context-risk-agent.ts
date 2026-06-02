@@ -58,6 +58,52 @@ export function runContextRiskAgent(triageOutput: TriageOutput): RiskOutput {
     };
   }
 
+  if (triageOutput.problemCategory === "Pencahayaan area rumah") {
+    const risks: RiskItem[] = [
+      {
+        id: "poor-home-lighting",
+        label: "Area kurang terang",
+        severity: "Sedang",
+        reason:
+          "Pencahayaan yang kurang dapat mengganggu visibilitas dan kenyamanan aktivitas di area rumah.",
+        priorityOrder: 1,
+      },
+      {
+        id: "installation-unclear",
+        label: "Kebutuhan pemasangan belum jelas",
+        severity: "Sedang",
+        reason:
+          "Staff perlu memvalidasi titik lampu, jenis fitting, dan kebutuhan instalasi sebelum rekomendasi final.",
+        priorityOrder: 2,
+      },
+    ];
+
+    return {
+      risks,
+      riskNarrative:
+        "Risiko utama adalah visibilitas area yang kurang dan kebutuhan validasi pemasangan. Staff perlu memastikan lokasi, fitting, dan tingkat terang yang dibutuhkan.",
+    };
+  }
+
+  if (triageOutput.problemCategory === "Kebutuhan perbaikan rumah umum") {
+    const risks: RiskItem[] = [
+      {
+        id: "unclear-home-need",
+        label: "Kebutuhan belum spesifik",
+        severity: "Sedang",
+        reason:
+          "Inquiry perlu diklarifikasi agar rekomendasi produk tidak salah kategori.",
+        priorityOrder: 1,
+      },
+    ];
+
+    return {
+      risks,
+      riskNarrative:
+        "Kebutuhan pelanggan masih umum. Staff perlu melakukan follow-up singkat untuk mengunci kategori, lokasi, dan prioritas belanja.",
+    };
+  }
+
   const risks: RiskItem[] = [
     {
       id: "slip-hazard",

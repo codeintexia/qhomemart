@@ -72,15 +72,54 @@ export function runCustomerTriageAgent(input: CustomerInput): TriageOutput {
     };
   }
 
+  if (
+    text.includes("kamar mandi") ||
+    text.includes("licin") ||
+    text.includes("lansia") ||
+    text.includes("pegangan") ||
+    text.includes("anti-slip") ||
+    text.includes("terpeleset")
+  ) {
+    return {
+      problemCategory: "Kamar mandi licin",
+      primarySpace: "Kamar mandi",
+      primaryUser: "Lansia",
+      constraints,
+      normalizedNeed:
+        "Solusi kamar mandi lebih aman untuk lansia dengan prioritas hemat.",
+      reasoning:
+        "Dari cerita dan pilihan kondisi, pelanggan mengidentifikasi kamar mandi sebagai ruang berisiko utama bagi anggota lansia. Pilihan preferensi belanja menunjukkan prioritas biaya dan keamanan, sehingga saran dimulai dari produk paling esensial terlebih dahulu.",
+    };
+  }
+
+  if (
+    text.includes("lampu") ||
+    text.includes("pencahayaan") ||
+    text.includes("garasi") ||
+    text.includes("redup") ||
+    text.includes("terang")
+  ) {
+    return {
+      problemCategory: "Pencahayaan area rumah",
+      primarySpace: text.includes("garasi") ? "Garasi" : "Area rumah",
+      primaryUser: "Pemilik rumah",
+      constraints,
+      normalizedNeed:
+        "Solusi pencahayaan rumah yang lebih terang dan aman untuk area yang sering digunakan.",
+      reasoning:
+        "Cerita pelanggan menunjukkan kebutuhan pencahayaan. Fokus awal adalah memastikan area cukup terang, memilih lampu yang sesuai, dan meminta staff memvalidasi kebutuhan pemasangan bila diperlukan.",
+    };
+  }
+
   return {
-    problemCategory: "Kamar mandi licin",
-    primarySpace: "Kamar mandi",
-    primaryUser: "Lansia",
+    problemCategory: "Kebutuhan perbaikan rumah umum",
+    primarySpace: "Area rumah",
+    primaryUser: "Pemilik rumah",
     constraints,
     normalizedNeed:
-      "Solusi kamar mandi lebih aman untuk lansia dengan prioritas hemat.",
+      "Solusi perbaikan rumah umum yang perlu diklarifikasi staff sebelum rekomendasi produk final.",
     reasoning:
-      "Dari cerita dan pilihan kondisi, pelanggan mengidentifikasi kamar mandi sebagai ruang berisiko utama bagi anggota lansia. Pilihan 'Hemat dulu' menunjukkan prioritas biaya, sehingga saran dimulai dari produk paling esensial terlebih dahulu.",
+      "Input pelanggan belum cukup spesifik untuk kategori utama. Workflow mengarahkannya ke konsultasi staff agar kebutuhan, lokasi, dan produk terkait dapat divalidasi.",
   };
 }
 

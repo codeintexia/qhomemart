@@ -6,9 +6,9 @@
  */
 
 import { plumbingLeakScenario } from "@/data/demo-scenario";
-import { runBathroomSafetyWorkflow } from "@/workflows/bathroom-safety-workflow";
-import type { WorkflowRunResult } from "@/types/mas-types";
+import { runRetailInquiryWorkflow } from "@/workflows/bathroom-safety-workflow";
+import type { CustomerInput, WorkflowRunResult } from "@/types/mas-types";
 
-export function runPlumbingLeakWorkflow(): WorkflowRunResult {
-  return runBathroomSafetyWorkflow(plumbingLeakScenario);
+export function runPlumbingLeakWorkflow(input?: CustomerInput): WorkflowRunResult {
+  return runRetailInquiryWorkflow(input ?? plumbingLeakScenario);
 }

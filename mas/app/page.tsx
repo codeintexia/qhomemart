@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useCallback, useEffect, useRef } from "react"
+import { useState, useCallback, useEffect, useMemo, useRef } from "react"
 import Link from "next/link"
 import { saveDemoInquiryEvent } from "@/lib/demo-event-bridge"
-import { runBathroomSafetyWorkflow } from "@/workflows/bathroom-safety-workflow"
+import { runUserInquiryWorkflow } from "@/workflows/run-user-inquiry-workflow"
 import {
   Search,
   Home,
@@ -23,9 +23,6 @@ import {
   Users,
   Sparkles,
 } from "lucide-react"
-
-// Run the multi-agent workflow once at module level for reproducible demo output
-const workflowOutput = runBathroomSafetyWorkflow()
 
 // Types
 type Screen = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
@@ -315,7 +312,7 @@ function InsightCard({ title, children, icon: Icon }: { title: string; children:
 export default function MASQHomemart() {
   const [screen, setScreen] = useState<Screen>(1)
   const [preference, setPreference] = useState<Preference>("hemat")
-  const [selectedProblems, setSelectedProblems] = useState<string[]>(["Kamar mandi licin", "Kurang pegangan"])
+  const [selectedProblems, setSelectedProblems] = useState<string[]>([])
   const [storyText, setStoryText] = useState("")
   const [showVoiceMessage, setShowVoiceMessage] = useState(false)
   const [showCopyFeedback, setShowCopyFeedback] = useState(false)
@@ -323,6 +320,18 @@ export default function MASQHomemart() {
   const [userPriority, setUserPriority] = useState("Hemat dulu")
   const [toastMessage, setToastMessage] = useState("")
   const savedDemoEventKey = useRef("")
+  const customerNeed = storyText.trim() || (selectedProblems.length > 0 ? selectedProblems.join(", ") : "Kebutuhan rumah belum dijelaskan")
+  const inquiryWorkflow = useMemo(
+    () =>
+      runUserInquiryWorkflow({
+        customerNeed,
+        selectedProblems,
+        preference,
+        channel: "Public Home guided intake",
+      }),
+    [customerNeed, preference, selectedProblems]
+  )
+  const workflowOutput = inquiryWorkflow.workflow
 
   const showToast = (message: string) => {
     setToastMessage(message)
@@ -368,7 +377,7 @@ export default function MASQHomemart() {
       return;
     }
 
-    const eventKey = `${workflowOutput.scenarioId}:${selectedProblems.join("|")}:${preference}:${storyText}:${userType}:${userPriority}`;
+    const eventKey = `${inquiryWorkflow.scenarioId}:${selectedProblems.join("|")}:${preference}:${storyText}:${userType}:${userPriority}`;
     if (savedDemoEventKey.current === eventKey) {
       return;
     }
@@ -382,15 +391,21 @@ export default function MASQHomemart() {
       customerNeed: storyText.trim() || `${selectedProblemSummary} untuk ${userType}`,
       selectedProblems,
       preference,
-      scenarioId: workflowOutput.scenarioId,
+      detectedCluster: inquiryWorkflow.detectedCluster,
+      scenarioId: inquiryWorkflow.scenarioId,
+      scenarioName: inquiryWorkflow.scenarioName,
+      selectedWorkflow: inquiryWorkflow.selectedWorkflow,
       workflowOutputSummary: workflowOutput.staffSummary,
-      finalRecommendation: workflowOutput.finalDecision.finalRecommendation,
-      humanReviewRequired: workflowOutput.finalDecision.humanReviewRequired,
-      auditStatus: workflowOutput.finalDecision.humanReviewRequired
-        ? "Audit Log tercatat, Human Review diperlukan"
-        : "Audit Log tercatat",
+      finalRecommendation: inquiryWorkflow.finalDecision,
+      recommendedPackage: inquiryWorkflow.recommendedPackage,
+      serviceRecommendation: inquiryWorkflow.serviceRecommendation,
+      humanReviewRequired: inquiryWorkflow.humanReviewRequired,
+      auditStatus: inquiryWorkflow.auditStatus,
+      interactionLogSummary: inquiryWorkflow.interactionLog
+        .map((entry) => `${entry.stepNumber}. ${entry.sourceAgent} -> ${entry.targetAgent ?? "Final"}: ${entry.outputSummary}`)
+        .join(" | "),
     })
-  }, [preference, screen, selectedProblems, storyText, userPriority, userType])
+  }, [inquiryWorkflow, preference, screen, selectedProblems, storyText, userPriority, userType, workflowOutput.staffSummary])
 
   // Screen 1: Entry Screen
   const Screen1 = () => (
@@ -409,7 +424,7 @@ export default function MASQHomemart() {
             icon={Search}
             title="Beli barang tertentu"
             description="Saya sudah tahu yang ingin dicari."
-            onClick={() => showToast("Jalur cari barang disiapkan untuk pengembangan berikutnya. Demo saat ini berfokus pada menyelesaikan masalah rumah.")}
+            onClick={() => showToast("Demo mendukung beberapa skenario terpilih, seperti keamanan kamar mandi, kebocoran pipa, pencahayaan rumah, dan kebutuhan rekomendasi produk.")}
           />
           <IntentCard
             icon={Sparkles}
@@ -422,7 +437,7 @@ export default function MASQHomemart() {
             icon={Wrench}
             title="Minta bantuan jasa"
             description="Servis, pemasangan, desain, atau renovasi."
-            onClick={() => showToast("Jalur jasa disiapkan untuk pengembangan berikutnya. Demo saat ini berfokus pada masalah kamar mandi licin.")}
+            onClick={() => showToast("Demo mendukung beberapa skenario terpilih, seperti keamanan kamar mandi, kebocoran pipa, pencahayaan rumah, dan kebutuhan rekomendasi produk.")}
           />
         </div>
 
@@ -458,7 +473,7 @@ export default function MASQHomemart() {
         </div>
 
         <p className="text-xs text-center text-[#667085] mt-6">
-          Prototype untuk QHomemart AI Agent Competition 2026
+          Cakupan demo QHomemart AI Agent Competition 2026
         </p>
       </div>
     </div>
@@ -477,7 +492,17 @@ export default function MASQHomemart() {
         </div>
 
         <div className="flex flex-wrap gap-2 mb-6">
-          {["Kamar mandi licin", "Lantai sering basah", "Pernah hampir terpeleset", "Kurang pegangan", "Cahaya kurang terang", "Barang sulit dijangkau", "Budget terbatas"].map((problem) => (
+          {[
+            "Kamar mandi licin",
+            "Butuh pegangan untuk lansia",
+            "Pipa bocor",
+            "Wastafel / sink bocor",
+            "Lampu garasi redup",
+            "Area rumah kurang terang",
+            "Butuh rekomendasi produk",
+            "Butuh bantuan pemasangan",
+            "Budget terbatas",
+          ].map((problem) => (
             <Chip
               key={problem}
               label={problem}
@@ -599,10 +624,9 @@ export default function MASQHomemart() {
         </div>
 
         <div className="space-y-3 mb-6">
-          <ConcernCard title="Risiko terpeleset" level="Tinggi" />
-          <ConcernCard title="Kurang pegangan" level="Tinggi" />
-          <ConcernCard title="Cahaya kurang jelas" level="Sedang" />
-          <ConcernCard title="Barang sulit dijangkau" level="Sedang" />
+          {workflowOutput.risks.risks.map((risk) => (
+            <ConcernCard key={risk.id} title={risk.label} level={risk.severity} />
+          ))}
         </div>
 
         <div className="p-4 rounded-xl bg-[#193B8C]/5 border border-[#193B8C]/10 mb-6">

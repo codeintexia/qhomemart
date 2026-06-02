@@ -7,11 +7,17 @@ export type DemoInquiryEvent = {
   customerNeed: string;
   selectedProblems: string[];
   preference: string;
+  detectedCluster: string;
   scenarioId: string;
+  scenarioName: string;
+  selectedWorkflow: string;
   workflowOutputSummary: string;
   finalRecommendation: string;
+  recommendedPackage: string;
+  serviceRecommendation: string;
   humanReviewRequired: boolean;
   auditStatus: string;
+  interactionLogSummary: string;
 };
 
 function canUseLocalStorage() {

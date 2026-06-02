@@ -77,7 +77,16 @@ Customer-facing output membutuhkan Human Review. Kasus high-risk, service uncert
 
 Public Home (`/`) dapat menulis satu demo inquiry event ke `localStorage` saat user mencapai layar hasil/rekomendasi. Operations Dashboard (`/operations`) membaca event terbaru tersebut melalui `localStorage` dan menampilkannya sebagai **Local demo bridge**.
 
+Event dibuat dari input user dan memuat customer need, selected problems, detected cluster, scenario ID, final recommendation, recommended package, service recommendation, Human Review status, Audit status, dan ringkasan Interaction Log.
+
 Bridge ini hanya untuk kredibilitas demo lokal: tidak memakai backend, database, API Key, atau event queue. Implementasi production membutuhkan API/database/event queue, autentikasi, validasi server-side, dan governance data yang sesuai.
+
+Contoh skenario yang didukung:
+
+- `Kamar mandi licin untuk lansia` → `bathroom-safety`
+- `Pipa bocor di dapur` → `plumbing-leak`
+- `Lampu garasi redup` → `lighting`
+- `Butuh rekomendasi renovasi ringan` → `generic-home-improvement`
 
 ## Local Development
 

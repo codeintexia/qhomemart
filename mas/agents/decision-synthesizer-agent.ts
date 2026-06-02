@@ -127,7 +127,13 @@ function buildDeterministicDecision({
     0.62,
     Math.min(0.93, 0.78 + productCount * 0.02 - conflictsDetected.length * 0.05)
   );
-  const finalRecommendation = `${bundle.bundleTitle}: ${triage.normalizedNeed}`;
+  const productSummary = [
+    ...products.sectionA.map((item) => item.product.name),
+    ...products.sectionB.map((item) => item.product.name),
+  ].slice(0, 4);
+  const finalRecommendation = `${bundle.bundleTitle}: ${triage.normalizedNeed}${
+    productSummary.length > 0 ? ` Produk prioritas: ${productSummary.join(", ")}.` : ""
+  }`;
   const decisionRationale =
     `Rekomendasi dipilih karena triage, risk assessment, product match, service guidance, dan staff insight konsisten pada kebutuhan "${triage.problemCategory}". ` +
     `Risiko prioritas dipetakan ke produk Section A, sementara layanan tetap opsional karena belum terhubung live.`;

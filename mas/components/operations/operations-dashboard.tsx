@@ -107,7 +107,7 @@ export function OperationsDashboard({ workflow }: { workflow: WorkflowRunResult 
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Local demo bridge</p>
                   <h2 className="mt-1 text-base font-semibold text-white">Event terbaru dari Public Home</h2>
                   <p className="mt-1 text-xs leading-5 text-slate-400">
-                    {latestDemoEvent ? "Data demo dari Public Home tersedia." : "Belum ada event dari Public Home."}
+                    {latestDemoEvent ? "Data demo dari Public Home tersedia. Local demo bridge, bukan production sync." : "Belum ada event dari Public Home. Local demo bridge, bukan production sync."}
                   </p>
                 </div>
                 <span className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
@@ -124,8 +124,13 @@ export function OperationsDashboard({ workflow }: { workflow: WorkflowRunResult 
                   {[
                     ["Event ID", latestDemoEvent.eventId],
                     ["Waktu", new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short" }).format(new Date(latestDemoEvent.timestamp))],
+                    ["Detected cluster", latestDemoEvent.detectedCluster],
                     ["Kebutuhan pelanggan", latestDemoEvent.customerNeed],
+                    ["Scenario", latestDemoEvent.scenarioName],
+                    ["Selected Workflow", latestDemoEvent.selectedWorkflow],
                     ["Rekomendasi akhir", latestDemoEvent.finalRecommendation],
+                    ["Recommended package", latestDemoEvent.recommendedPackage],
+                    ["Service recommendation", latestDemoEvent.serviceRecommendation],
                     ["Human Review", latestDemoEvent.humanReviewRequired ? "Diperlukan" : "Tidak wajib"],
                     ["Audit status", latestDemoEvent.auditStatus],
                   ].map(([label, value]) => (

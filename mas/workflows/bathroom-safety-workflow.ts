@@ -485,6 +485,13 @@ export function runBathroomSafetyWorkflow(
   input?: CustomerInput
 ): WorkflowRunResult {
   const customerInput = input ?? DEFAULT_INPUT;
+  return runRetailInquiryWorkflow(customerInput);
+}
+
+export function runRetailInquiryWorkflow(
+  input: CustomerInput
+): WorkflowRunResult {
+  const customerInput = input;
   const triage = runCustomerTriageAgent(customerInput);
   const aiMeta = getLLMTriageAvailability();
   return buildWorkflowResult(customerInput, triage, aiMeta);
@@ -511,7 +518,7 @@ export function runAllDemoWorkflows(): WorkflowRunResult[] {
  * Uses runHybridCustomerTriageAgent() which checks for an optional LLM provider.
  * All downstream agents (steps 2–6) remain deterministic.
  *
- * In the current prototype, this also returns deterministic output because
+ * In the current scope, this also returns deterministic output because
  * no LLM provider integration has been implemented yet.
  *
  * @param input - Optional customer input; falls back to the canonical demo scenario

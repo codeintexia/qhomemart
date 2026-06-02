@@ -8,7 +8,7 @@
  * The buying preference ("Hemat dulu") influences how the bundle title and
  * subtitle are framed. Items are always ordered: Section A → B → C.
  *
- * Prototype: deterministic for the bathroom-safety demo.
+ * Current scope: deterministic for selected local scenarios.
  * Not connected to real QHomemart pricing, margin, or promo systems.
  */
 
@@ -78,8 +78,17 @@ export function runBundleStrategyAgent(
     }
   }
 
+  const itemNames = sections.flatMap((section) => section.items.map((item) => item.name.toLowerCase()));
+  const bundleTitle = itemNames.some((name) => name.includes("sealant") || name.includes("pipa") || name.includes("selang"))
+    ? "Paket Tanggap Bocor Dapur"
+    : itemNames.some((name) => name.includes("anti-slip") || name.includes("pegangan"))
+        ? "Paket Kamar Mandi Lebih Aman"
+        : itemNames.some((name) => name.includes("lampu") || name.includes("fitting"))
+          ? "Paket Pencahayaan Area Rumah"
+          : "Paket Solusi Kebutuhan Rumah";
+
   return {
-    bundleTitle: "Paket solusi untuk Anda",
+    bundleTitle,
     bundleSubtitle:
       "Dimulai dari yang paling penting dan mudah dilakukan.",
     sections,

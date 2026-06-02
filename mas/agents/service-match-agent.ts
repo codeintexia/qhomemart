@@ -8,7 +8,7 @@
  * Important: This agent does NOT guarantee service availability.
  * It returns guidance text that directs customers to ask a staff member.
  *
- * Prototype: deterministic for the bathroom-safety demo.
+ * Current scope: deterministic for selected local scenarios.
  * Not connected to real QHomemart service booking or availability systems.
  */
 
@@ -48,6 +48,6 @@ export function runServiceMatchAgent(
   return {
     sectionC,
     availabilityNote:
-      "Layanan ini bersifat arahan opsional dalam prototype dan belum terhubung ke sistem layanan produksi QHomemart.",
+      "Layanan ini bersifat arahan opsional dalam cakupan saat ini dan belum terhubung ke sistem layanan produksi QHomemart.",
   };
 }
