@@ -564,7 +564,7 @@ export default function MASQHomemart() {
         </div>
 
         <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] mb-4">
-          <h3 className="font-semibold text-[#1F2933] mb-4">Siapa yang paling sering memakai kamar mandi ini?</h3>
+          <h3 className="font-semibold text-[#1F2933] mb-4">Siapa yang paling terdampak oleh masalah ini?</h3>
           <div className="space-y-2">
             {["Lansia", "Anak-anak", "Orang dewasa", "Pengguna dengan keterbatasan gerak"].map((option) => (
               <button
@@ -768,6 +768,14 @@ export default function MASQHomemart() {
   // Screen 7: Business Insight Screen — driven by workflowOutput.businessInsight
   const Screen7 = () => {
     const { businessInsight } = workflowOutput
+    const scenarioTags: Record<string, string[]> = {
+      "bathroom-safety": ["Anti-slip", "Pegangan / grab bar", "Pencahayaan kamar mandi", "Rak rendah", "Opsi pemasangan"],
+      "plumbing-leak": ["Sealant", "Fitting pipa", "Layanan plumbing", "Survey ringan", "Paket Anti Bocor"],
+      lighting: ["Lampu LED", "Area garasi / teras", "Instalasi ringan", "Paket Pencahayaan Rumah", "Cek kebutuhan daya"],
+      "generic-home-improvement": ["Konsultasi kebutuhan", "Rekomendasi produk", "Validasi staff", "Paket awal", "Human Review"],
+    }
+    const packageTags = scenarioTags[inquiryWorkflow.scenarioId] ?? scenarioTags["generic-home-improvement"]
+
     return (
       <div className="min-h-full flex flex-col animate-fade-in">
         <ScreenHeader isJudgeMode />
@@ -794,7 +802,7 @@ export default function MASQHomemart() {
             <InsightCard title="Peluang paket" icon={Package}>
               <p className="text-[#1F2933] font-medium mb-2">{businessInsight.bundleOpportunity}</p>
               <div className="flex flex-wrap gap-2">
-                {["Anti-slip", "Pegangan", "Pencahayaan", "Rak rendah", "Opsi pemasangan"].map((item) => (
+                {packageTags.map((item) => (
                   <span key={item} className="px-2 py-1 bg-[#FFD21F]/20 text-[#92700C] text-xs rounded-full font-medium">
                     {item}
                   </span>

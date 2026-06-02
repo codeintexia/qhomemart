@@ -518,8 +518,9 @@ export function runAllDemoWorkflows(): WorkflowRunResult[] {
  * Uses runHybridCustomerTriageAgent() which checks for an optional LLM provider.
  * All downstream agents (steps 2–6) remain deterministic.
  *
- * In the current scope, this also returns deterministic output because
- * no LLM provider integration has been implemented yet.
+ * Async workflow can use optional LLM-assisted triage and decision synthesis
+ * when provider credentials are configured. If credentials are missing or
+ * provider calls fail, the workflow falls back to deterministic execution.
  *
  * @param input - Optional customer input; falls back to the canonical demo scenario
  * @returns Promise<WorkflowRunResult>

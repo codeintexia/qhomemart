@@ -56,14 +56,21 @@ API Key harus server-side only. Jangan memakai `NEXT_PUBLIC_` untuk secret. Jang
 
 - `mas/workflows/bathroom-safety-workflow.ts`
 - `mas/workflows/plumbing-leak-workflow.ts`
+- `mas/workflows/run-user-inquiry-workflow.ts`
 - `mas/workflows/interaction-logger.ts`
+
+## Catatan Penamaan Workflow
+
+`runRetailInquiryWorkflow` adalah workflow generik untuk menjalankan input dari Public Home melalui pipeline Agent yang sama. `runUserInquiryWorkflow` memilih atau membentuk output berdasarkan klaster `bathroom-safety`, `plumbing-leak`, `lighting`, atau `generic-home-improvement`. `runBathroomSafetyWorkflow` tetap ada sebagai compatibility wrapper dari skenario awal kamar mandi licin; nama lama ini tidak berarti seluruh sistem hanya mendukung kasus kamar mandi.
 
 ## Skenario Demo
 
 - `bathroom-safety`: kamar mandi licin untuk lansia.
 - `plumbing-leak`: kebocoran pipa bawah sink dapur.
+- `lighting`: lampu garasi redup atau pencahayaan rumah.
+- `generic-home-improvement`: kebutuhan rekomendasi produk atau renovasi ringan.
 
-Kedua skenario melewati Multi-Agent Workflow yang sama.
+Semua skenario melewati Multi-Agent Workflow yang sama.
 
 ## Interaction Log dan Auditability
 

@@ -62,16 +62,23 @@ Satu API Key dapat mendukung beberapa Agent yang memakai LLM. Separate API Key p
 
 - `workflows/bathroom-safety-workflow.ts`
 - `workflows/plumbing-leak-workflow.ts`
+- `workflows/run-user-inquiry-workflow.ts`
 - `workflows/interaction-logger.ts`
 
 Mode LLM-assisted tersedia secara opsional untuk Agent Klasifikasi Permintaan Pelanggan (Customer Triage Agent) dan Agent Sintesis Keputusan (Decision Synthesizer Agent). Dashboard preview tetap deterministic by default untuk reproducibility. Async Workflow/script execution dapat digunakan untuk inspeksi LLM-assisted triage dan decision synthesis saat provider credentials valid. Agent berbasis business rule lain tetap deterministic by design.
+
+## Catatan Penamaan Workflow
+
+`runRetailInquiryWorkflow` adalah workflow generik untuk menjalankan input dari Public Home melalui pipeline Agent yang sama. `runUserInquiryWorkflow` memilih atau membentuk output berdasarkan klaster `bathroom-safety`, `plumbing-leak`, `lighting`, atau `generic-home-improvement`. `runBathroomSafetyWorkflow` tetap ada sebagai compatibility wrapper dari skenario awal kamar mandi licin; nama lama ini tidak berarti seluruh sistem hanya mendukung kasus kamar mandi.
 
 ## Skenario Demo
 
 - `bathroom-safety`: kamar mandi licin untuk lansia.
 - `plumbing-leak`: kebocoran pipa bawah sink dapur.
+- `lighting`: lampu garasi redup atau pencahayaan rumah.
+- `generic-home-improvement`: kebutuhan rekomendasi produk atau renovasi ringan.
 
-Kedua skenario berjalan melalui Multi-Agent Workflow yang sama.
+Semua skenario berjalan melalui Multi-Agent Workflow yang sama.
 
 ## Interaction Log dan Auditability
 
